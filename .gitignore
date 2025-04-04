@@ -1,0 +1,23 @@
+# Python files
+*.pyc
+__pycache__/
+
+# Virtual Environment
+venv/
+.env
+
+# Database (if using SQLite)
+db.sqlite3
+
+# Logs & Cache
+logs/
+*.log
+
+# Media & Static Files
+media/
+staticfiles/
+
+# Docker & Celery
+celerybeat-schedule
+*.pid
+*~
