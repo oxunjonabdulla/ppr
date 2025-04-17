@@ -7,14 +7,14 @@ from apps.users.models import User
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ['username', 'name', "role", "image"]
+        fields = ["username", "name", "role", "image"]
         error_class = "error"
 
 
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
-        fields = ['username', "name", "role", "image"]
+        fields = ["username", "name", "role", "image"]
         error_class = "error"
 
 

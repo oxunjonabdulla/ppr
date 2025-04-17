@@ -21,3 +21,4 @@ staticfiles/
 celerybeat-schedule
 *.pid
 *~
+*.isorted
