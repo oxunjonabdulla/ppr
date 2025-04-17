@@ -13,4 +13,3 @@ def get_upload_path(instance, filename):
         folder_name = "uploads"
         number = "unknown"
     return os.path.join(folder_name, today, str(number), filename)
-
