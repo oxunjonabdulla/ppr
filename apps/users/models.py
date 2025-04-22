@@ -105,7 +105,7 @@ class User(AbstractUser):
             ):
                 raise ValidationError(
                     {
-                        "company": "Superuser bo'lmaganlar kompaniya bilan bog'langan bo'lishi kerak."
+                        "company": "Superuser bo'lmaganlar korxona bilan bog'langan bo'lishi kerak."
                     }
                 )
         if self.is_superuser:

@@ -8,38 +8,6 @@ from apps.users.models import User
 from apps.utils.get_upload_path import get_upload_path
 
 
-# Uskunalar kategoriyasi
-# ------------------------------------------------------------------------------------------
-class EquipmentCategory(models.Model):
-    """
-    Categories for different types of equipment (e.g, Lathes,Welding devices, Lifting cranes,
-     Capacities under pressure,Heating boilers)
-    """
-
-    name = models.CharField(_("Kategoriya nomi"), max_length=255)
-    description = models.CharField(_("Izoh"), blank=True)
-    image = models.ImageField(
-        _("Korxona logosi"), upload_to=get_upload_path, null=True, blank=True
-    )
-    company = models.ForeignKey(
-        "companies.Company",
-        on_delete=models.CASCADE,
-        related_name="equipment_categories",
-    )
-
-    class Meta:
-        verbose_name = _("Uskunalar kategoriyalari")
-        verbose_name_plural = _("Uskunalar kategoriyalari")
-        constraints = [
-            models.UniqueConstraint(
-                fields=["name", "company"], name="unique_equipment_category"
-            )
-        ]
-
-    def __str__(self):
-        return f"Kategoriyasi: {self.name}, Korxona: ({self.company.name})"
-
-
 # AbstractBaseEquipment model
 # ------------------------------------------------------------------------------------------
 class AbstractBaseEquipment(models.Model):

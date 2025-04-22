@@ -52,6 +52,7 @@ LOCALE_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCALE_APPS
 
+AUTH_USER_MODEL = "users.User"
 # MIDDLEWARE
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

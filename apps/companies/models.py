@@ -24,6 +24,12 @@ class Company(models.Model):
         _("Korxona logosi"), upload_to=get_upload_path, null=True, blank=True
     )
     is_active = models.BooleanField(_("Faol"), default=True)
+    author = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="company_author",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

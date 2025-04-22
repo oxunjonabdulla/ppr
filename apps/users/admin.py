@@ -11,11 +11,21 @@ class UserAdmin(BaseUserAdmin):
     ordering = ["username"]
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
+    model = User
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (
             _("Personal info"),
-            {"fields": ("name", "email", "role", "jshshir", "image")},
+            {
+                "fields": (
+                    "name",
+                    "email",
+                    "role",
+                    "company",
+                    "jshshir",
+                    "image",
+                )
+            },
         ),
         (
             _("Permissions"),
@@ -43,6 +53,7 @@ class UserAdmin(BaseUserAdmin):
                     "password2",
                     "role",
                     "jshshir",
+                    "company",
                     "image",
                     "is_staff",
                     "is_active",
@@ -50,5 +61,13 @@ class UserAdmin(BaseUserAdmin):
             },
         ),
     )
-    list_display = ["username", "name", "role", "jshshir", "is_superuser"]
+    list_display = [
+        "username",
+        "name",
+        "role",
+        "jshshir",
+        "company",
+        "is_superuser",
+    ]
+    list_filter = ("role", "company", "is_superuser")
     search_fields = ["name", "role", "jshshir"]
