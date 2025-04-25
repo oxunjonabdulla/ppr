@@ -1,7 +1,8 @@
 from django.db import transaction
-from django.shortcuts import get_object_or_404, render
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
-from rest_framework import filters, generics, parsers, permissions, status
+from rest_framework import filters, generics, permissions, status
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from apps.users.api.permissions import IsSuperUser
@@ -12,14 +13,13 @@ from .serializers import CompanyModelSerializer
 
 
 @extend_schema(tags=["Korxonalar"])
-class CompaniesListCreateAPIView(generics.ListCreateAPIView):
+class CompanyListCreateAPIView(generics.ListCreateAPIView):
     queryset = Company.objects.order_by("-created_at")
     serializer_class = CompanyModelSerializer
     permission_classes = [permissions.IsAuthenticated, IsSuperUser]
     filter_backends = [filters.SearchFilter]
     search_fields = ["name", "code"]
     pagination_class = StandardResultsSetPagination
-    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -34,4 +34,27 @@ class CompaniesListCreateAPIView(generics.ListCreateAPIView):
             {"status": status.HTTP_201_CREATED, "data": serializer.data},
             status=status.HTTP_201_CREATED,
             headers=headers,
+        )
+
+
+@extend_schema(tags=["Korxonalar"])
+class CompanyRetrieveUpdateDestroyAPIView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+    queryset = Company.objects.all()
+    serializer_class = CompanyModelSerializer
+    permission_classes = [permissions.IsAuthenticated, IsSuperUser]
+
+    def get_object(self):
+        try:
+            instance = Company.objects.get(pk=self.kwargs["pk"])
+            return instance
+        except Company.DoesNotExist:
+            raise NotFound(_("Bu id raqamga mos korxona mavjud emas"))
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(
+            {"status": status.HTTP_204_NO_CONTENT, "data": serializer.data}
         )

@@ -1,0 +1,67 @@
+from django.urls import path
+
+from apps.equipment.api.views import (
+    HeatingBoilerListCreateAPIView,
+    HeatingBoilerRetrieveUpdateDestroyAPIView,
+    LatheMachineListCreateAPIView,
+    LatheMachineRetrieveUpdateDestroyAPIView,
+    LiftingCraneListCreateAPIView,
+    LiftingCraneRetrieveUpdateDestroyAPIView,
+    PressureVesselListCreateAPIView,
+    PressureVesselRetrieveUpdateDestroyAPIView,
+    WeldingEquipmentListCreateAPIView,
+    WeldingEquipmentRetrieveUpdateDestroyAPIView,
+)
+
+urlpatterns = [
+    path(
+        "lathe_machine-list-create/",
+        LatheMachineListCreateAPIView.as_view(),
+        name="lathe_machine-list-create",
+    ),
+    path(
+        "lathe_machine-detail/<int:pk>/",
+        LatheMachineRetrieveUpdateDestroyAPIView.as_view(),
+        name="lathe_machine-detail",
+    ),
+    path(
+        "welding_equipment-list-create/",
+        WeldingEquipmentListCreateAPIView.as_view(),
+        name="welding_equipment-list-create",
+    ),
+    path(
+        "welding_equipment-detail/<int:pk>/",
+        WeldingEquipmentRetrieveUpdateDestroyAPIView.as_view(),
+        name="welding_equipment-detail",
+    ),
+    path(
+        "heating_boiler-list-create/",
+        HeatingBoilerListCreateAPIView.as_view(),
+        name="heating_boiler-list-create",
+    ),
+    path(
+        "heating_boiler-detail/<int:pk>/",
+        HeatingBoilerRetrieveUpdateDestroyAPIView.as_view(),
+        name="heating_boiler-detail",
+    ),
+    path(
+        "lifting_crane-list-create/",
+        LiftingCraneListCreateAPIView.as_view(),
+        name="lifting_crane-list-create",
+    ),
+    path(
+        "lifting_crane-detail/<int:pk>/",
+        LiftingCraneRetrieveUpdateDestroyAPIView.as_view(),
+        name="lifting_crane-detail",
+    ),
+    path(
+        "pressure_vessel-list-create/",
+        PressureVesselListCreateAPIView.as_view(),
+        name="pressure_vessel-list-create",
+    ),
+    path(
+        "pressure_vessel-detail/<int:pk>/",
+        PressureVesselRetrieveUpdateDestroyAPIView.as_view(),
+        name="pressure_vessel-detail",
+    ),
+]

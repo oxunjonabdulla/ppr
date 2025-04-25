@@ -4,7 +4,6 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.users.models import User
 from apps.utils.get_upload_path import get_upload_path
 
 #  Ta'mirlash jadvali
@@ -12,34 +11,75 @@ from apps.utils.get_upload_path import get_upload_path
 
 
 class MaintenanceSchedule(models.Model):
-    """
-    Model for scheduling equipment maintenance.
-    """
-
-    MAINTENANCE_TYPE_CHOICES = (
-        ("preventive", _("Oldini olish")),
-        ("corrective", _("Tuzatish")),
-        ("condition_based", _("Holatga asoslangan")),
-        ("predictive", _("Bashoratli")),
+    MAINTENANCE_TITLE_CHOICES = (
+        # Tokarlik dastgohlari
+        ("lathe_inspection", _("Tokarlik dastgohlari jadvali")),
+        ("lathe_check", _("Texnik ko'rik sanasi")),
+        ("lathe_next_check", _("Keyingi texnik ko‘rik sanasi")),
+        # Payvandlash uskunalari
+        ("welding_inspection", _("Payvandlash uskunalari jadvali")),
+        ("welding_check", _("Texnik ko'rik sanasi")),
+        ("welding_next_check", _("Keyingi texnik ko‘rik sanasi")),
+        ("voltmeter_check", _("Voltmetr ko‘rik sanasi")),
+        ("voltmeter_next_check", _("Keyingi voltmetr ko‘rik sanasi")),
+        # Isitish qozoni
+        ("boiler_schedule", _("Isitish qozoni jadvali")),
+        ("boiler_inner_outer", _("Tashqi va ichki ko‘rik sanasi")),
+        (
+            "boiler_next_inner_outer",
+            _("Keyingi tashqi va ichki ko‘rik sanasi"),
+        ),
+        ("boiler_flush_test", _("Yuvish va sinovdan o‘tkazish sanasi")),
+        (
+            "boiler_next_flush_test",
+            _("Keyingi yuvish va sinovdan o‘tkazish sanasi"),
+        ),
+        ("boiler_manometer", _("Manometrlarni qiyoslash sanasi")),
+        ("boiler_next_manometer", _("Keyingi manometrlarni qiyoslash sanasi")),
+        # Yuk ko'taruvchi kranlar
+        ("crane_schedule", _("Yuk ko'taruvchi kranlar jadvali")),
+        ("crane_full_inspection", _("To‘liq texnik ko‘rik sanasi")),
+        ("crane_next_full", _("Keyingi to‘liq texnik ko‘rik sanasi")),
+        ("crane_partial", _("Qisman texnik ko‘rik sanasi")),
+        ("crane_next_partial", _("Keyingi qisman texnik ko‘rik sanasi")),
+        ("crane_lab_test", _("Laboratoriya tekshiruvi sanasi")),
+        ("crane_next_lab_test", _("Keyingi laboratoriya tekshiruvi sanasi")),
+        ("crane_leveling", _("Nivelirovka sanasi")),
+        ("crane_next_leveling", _("Keyingi nivelirovka sanasi")),
+        # Bosim ostida sig'imlar
+        ("pressure_schedule", _("Bosim ostida sig'imlar jadvali")),
+        ("pressure_inner", _("Ichki ko‘rik sanasi")),
+        ("pressure_next_inner", _("Keyingi ichki ko‘rik sanasi")),
+        ("pressure_hydro_test", _("Gidravlik sinov sanasi")),
+        ("pressure_next_hydro_test", _("Keyingi gidravlik sinov sanasi")),
+        ("pressure_valve", _("Ortiqcha bosimdan saqlovchi qurilma sanasi")),
+        (
+            "pressure_next_valve",
+            _("Keyingi ortiqcha bosimdan saqlovchi qurilma sanasi"),
+        ),
+        ("pressure_manometer", _("Manometrlarni qiyoslash sanasi")),
+        (
+            "pressure_next_manometer",
+            _("Keyingi manometrlarni qiyoslash sanasi"),
+        ),
     )
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
-    maintenance_type = models.CharField(
-        _("Xizmat turi"),
-        max_length=25,
-        choices=MAINTENANCE_TYPE_CHOICES,
-        default="preventive",
+
+    title = models.CharField(
+        _("Xizmat turi"), max_length=100, choices=MAINTENANCE_TITLE_CHOICES
     )
-    title = models.CharField(_("Nomi"), max_length=255, blank=True)
     description = models.TextField(_("Ta'rif"), blank=True)
-    scheduled_date = models.DateTimeField(
+
+    scheduled_date = models.DateField(
         _("Rejalashtirilgan sana"), null=True, blank=True
     )
     estimated_duration = models.PositiveIntegerField(
-        _("Taxminiy muddat"), default=1, null=True, blank=True
+        _("Taxminiy muddat (kun)"), null=True, blank=True
     )
+
     assigned_to = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
@@ -47,9 +87,10 @@ class MaintenanceSchedule(models.Model):
         null=True,
         blank=True,
     )
+
     is_completed = models.BooleanField(_("Bajarildi"), default=False)
-    completed_date = models.DateTimeField(
-        _("Bajarilgan vaqti"), null=True, blank=True
+    completed_date = models.DateField(
+        _("Bajarilgan sana"), null=True, blank=True
     )
     completed_by = models.ForeignKey(
         "users.User",
@@ -58,6 +99,7 @@ class MaintenanceSchedule(models.Model):
         null=True,
         blank=True,
     )
+
     created_by = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
@@ -69,37 +111,7 @@ class MaintenanceSchedule(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.content_object} uchun {self.scheduled_date} kuni texnik xizmat ko'rsatish"
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        # I can handle updates to content_object if it has next_maintenance or last_maintenance
-        obj = self.content_object
-        fields_to_update = []
-
-        if hasattr(obj, "next_maintenance") and not self.is_completed:
-            if (
-                not obj.next_maintenance
-                or self.scheduled_date < obj.next_maintenance
-            ):
-                obj.next_maintenance = self.scheduled_date
-                fields_to_update.append("next_maintenance")
-
-        if (
-            hasattr(obj, "last_maintenance")
-            and self.is_completed
-            and self.completed_date
-        ):
-            if (
-                not obj.last_maintenance
-                or self.completed_date > obj.last_maintenance
-            ):
-                obj.last_maintenance = self.completed_date
-                fields_to_update.append("last_maintenance")
-
-        if fields_to_update:
-            obj.save(update_fields=fields_to_update)
+        return f"{self.get_title_display()} - {self.scheduled_date}"
 
 
 # Xizmat haqida ogohlantirish
@@ -107,10 +119,12 @@ class MaintenanceSchedule(models.Model):
 
 
 class MaintenanceWarning(models.Model):
-    """
-    Model for maintenance warnings sent to user
-    """
-
+    WARNING_TIME = (
+        ("one_month", _("1 oy oldin")),
+        ("fifteen_days", _("15 kun oldin")),
+        ("seven_days", _("7 kun oldin")),
+        ("three_days", _("3 kun oldin")),
+    )
     WARNING_LEVELS = (
         ("low", _("Past")),
         ("medium", _("O‘rta")),
@@ -126,46 +140,44 @@ class MaintenanceWarning(models.Model):
         choices=WARNING_LEVELS,
         default="medium",
     )
-    days_before = models.PositiveIntegerField(
-        _("Belgilangan sanadan bir necha kun oldin"),
-        default=10,
-        null=True,
-        blank=True,
+    warning_time = models.CharField(
+        _("Ogohlantirish vaqti"), max_length=20, choices=WARNING_TIME
     )
     message = models.TextField(_("Ogohlantirish xabari"), blank=True)
     is_sent = models.BooleanField(_("Yuborildi"), default=False)
     sent_date = models.DateTimeField(
         _("Yuborilgan sana"), null=True, blank=True
     )
+    sent_to_telegram = models.BooleanField(
+        _("Telegramga yuborilgan"), default=False
+    )
 
     class Meta:
         verbose_name = _("Maintenance Warning")
         verbose_name_plural = _("Maintenance Warnings")
+        unique_together = (
+            "maintenance_schedule",
+            "warning_level",
+        )  # Prevent duplicate warnings
 
     def __str__(self):
-        return f"{self.get_warning_level_display()}  {self.maintenance_schedule.title} uchun ogohlantirish"
+        return (
+            f"{self.get_warning_level_display()} - {self.maintenance_schedule}"
+        )
 
 
 # Uskuna nosozligi
 # ------------------------------------------------------------------------------------------
 class EquipmentFault(models.Model):
-    """
-    Model for recording equipment faults by equipment masters.
-    Includes timestamp and photo evidence.
-    """
-
     FAULT_SEVERITY = (
         ("minor", _("Yengil")),
         ("moderate", _("O‘rtacha")),
         ("major", _("Jiddiy")),
         ("critical", _("Favqulodda")),
     )
-
-    # Generic Foreign Key setup
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     equipment = GenericForeignKey("content_type", "object_id")
-
     title = models.CharField(_("Nosozlik nomi"), max_length=255, blank=True)
     description = models.TextField(_("Ta'rifi"), blank=True)
     severity = models.CharField(
@@ -216,25 +228,13 @@ class EquipmentFault(models.Model):
 
 # Bildirishnoma jurnali
 # ------------------------------------------------------------------------------------------
-
-
 class Notification(models.Model):
-    """
-    Model for system notifications to users and Telegram group
-    """
-
     NOTIFICATION_TYPE = (
-        (
-            "maintenance_due",
-            _("Texnik xizmat muddati yaqinlashmoqda"),
-        ),  # Maintenance Due
-        (
-            "maintenance_completed",
-            _("Texnik xizmat bajarildi"),
-        ),  # Maintenance Completed
-        ("fault_reported", _("Nosozlik aniqlandi")),  # Fault Reported
-        ("fault_resolved", _("Nosozlik bartaraf etildi")),  # Fault Resolved
-        ("system", _("Tizim xabarnomasi")),  # System Notification
+        ("maintenance_due", _("Texnik xizmat muddati yaqinlashmoqda")),
+        ("maintenance_completed", _("Texnik xizmat bajarildi")),
+        ("fault_reported", _("Nosozlik aniqlandi")),
+        ("fault_resolved", _("Nosozlik bartaraf etildi")),
+        ("system", _("Tizim xabarnomasi")),
     )
     user = models.ForeignKey(
         "users.User",
