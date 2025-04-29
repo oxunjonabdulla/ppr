@@ -10,34 +10,64 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('equipment', '0001_initial'),
+        ("equipment", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='heatingboiler',
-            name='responsible_person',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Javobgar shaxs'),
+            model_name="heatingboiler",
+            name="responsible_person",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Javobgar shaxs",
+            ),
         ),
         migrations.AddField(
-            model_name='lathemachine',
-            name='responsible_person',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Javobgar shaxs'),
+            model_name="lathemachine",
+            name="responsible_person",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Javobgar shaxs",
+            ),
         ),
         migrations.AddField(
-            model_name='liftingcrane',
-            name='responsible_person',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Javobgar shaxs'),
+            model_name="liftingcrane",
+            name="responsible_person",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Javobgar shaxs",
+            ),
         ),
         migrations.AddField(
-            model_name='pressurevessel',
-            name='responsible_person',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Javobgar shaxs'),
+            model_name="pressurevessel",
+            name="responsible_person",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Javobgar shaxs",
+            ),
         ),
         migrations.AddField(
-            model_name='weldingequipment',
-            name='responsible_person',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Javobgar shaxs'),
+            model_name="weldingequipment",
+            name="responsible_person",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Javobgar shaxs",
+            ),
         ),
     ]

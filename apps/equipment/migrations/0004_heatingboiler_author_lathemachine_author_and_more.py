@@ -8,34 +8,62 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('equipment', '0003_heatingboiler_created_at_heatingboiler_updated_at_and_more'),
+        (
+            "equipment",
+            "0003_heatingboiler_created_at_heatingboiler_updated_at_and_more",
+        ),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='heatingboiler',
-            name='author',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='heating_boiler_author', to=settings.AUTH_USER_MODEL),
+            model_name="heatingboiler",
+            name="author",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="heating_boiler_author",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='lathemachine',
-            name='author',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='lathe_machine_author', to=settings.AUTH_USER_MODEL),
+            model_name="lathemachine",
+            name="author",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="lathe_machine_author",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='liftingcrane',
-            name='author',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='lifting_crane_author', to=settings.AUTH_USER_MODEL),
+            model_name="liftingcrane",
+            name="author",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="lifting_crane_author",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='pressurevessel',
-            name='author',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='pressure_vessel_author', to=settings.AUTH_USER_MODEL),
+            model_name="pressurevessel",
+            name="author",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="pressure_vessel_author",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='weldingequipment',
-            name='author',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='welding_equipment_author', to=settings.AUTH_USER_MODEL),
+            model_name="weldingequipment",
+            name="author",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="welding_equipment_author",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

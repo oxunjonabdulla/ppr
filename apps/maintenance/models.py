@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from dateutil.relativedelta import relativedelta
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import FileExtensionValidator
@@ -11,73 +14,52 @@ from apps.utils.get_upload_path import get_upload_path
 
 
 class MaintenanceSchedule(models.Model):
-    MAINTENANCE_TITLE_CHOICES = (
-        # Tokarlik dastgohlari
-        ("lathe_inspection", _("Tokarlik dastgohlari jadvali")),
-        ("lathe_check", _("Texnik ko'rik sanasi")),
-        ("lathe_next_check", _("Keyingi texnik ko‘rik sanasi")),
-        # Payvandlash uskunalari
-        ("welding_inspection", _("Payvandlash uskunalari jadvali")),
-        ("welding_check", _("Texnik ko'rik sanasi")),
-        ("welding_next_check", _("Keyingi texnik ko‘rik sanasi")),
-        ("voltmeter_check", _("Voltmetr ko‘rik sanasi")),
-        ("voltmeter_next_check", _("Keyingi voltmetr ko‘rik sanasi")),
-        # Isitish qozoni
-        ("boiler_schedule", _("Isitish qozoni jadvali")),
-        ("boiler_inner_outer", _("Tashqi va ichki ko‘rik sanasi")),
-        (
-            "boiler_next_inner_outer",
-            _("Keyingi tashqi va ichki ko‘rik sanasi"),
-        ),
-        ("boiler_flush_test", _("Yuvish va sinovdan o‘tkazish sanasi")),
-        (
-            "boiler_next_flush_test",
-            _("Keyingi yuvish va sinovdan o‘tkazish sanasi"),
-        ),
-        ("boiler_manometer", _("Manometrlarni qiyoslash sanasi")),
-        ("boiler_next_manometer", _("Keyingi manometrlarni qiyoslash sanasi")),
-        # Yuk ko'taruvchi kranlar
-        ("crane_schedule", _("Yuk ko'taruvchi kranlar jadvali")),
-        ("crane_full_inspection", _("To‘liq texnik ko‘rik sanasi")),
-        ("crane_next_full", _("Keyingi to‘liq texnik ko‘rik sanasi")),
-        ("crane_partial", _("Qisman texnik ko‘rik sanasi")),
-        ("crane_next_partial", _("Keyingi qisman texnik ko‘rik sanasi")),
-        ("crane_lab_test", _("Laboratoriya tekshiruvi sanasi")),
-        ("crane_next_lab_test", _("Keyingi laboratoriya tekshiruvi sanasi")),
-        ("crane_leveling", _("Nivelirovka sanasi")),
-        ("crane_next_leveling", _("Keyingi nivelirovka sanasi")),
-        # Bosim ostida sig'imlar
-        ("pressure_schedule", _("Bosim ostida sig'imlar jadvali")),
-        ("pressure_inner", _("Ichki ko‘rik sanasi")),
-        ("pressure_next_inner", _("Keyingi ichki ko‘rik sanasi")),
-        ("pressure_hydro_test", _("Gidravlik sinov sanasi")),
-        ("pressure_next_hydro_test", _("Keyingi gidravlik sinov sanasi")),
-        ("pressure_valve", _("Ortiqcha bosimdan saqlovchi qurilma sanasi")),
-        (
-            "pressure_next_valve",
-            _("Keyingi ortiqcha bosimdan saqlovchi qurilma sanasi"),
-        ),
-        ("pressure_manometer", _("Manometrlarni qiyoslash sanasi")),
-        (
-            "pressure_next_manometer",
-            _("Keyingi manometrlarni qiyoslash sanasi"),
-        ),
+    MAINTENANCE_TYPE_CHOICES = (
+        # General maintenance types (applicable to multiple equipment types)
+        ("inspection", _("Texnik ko'rik")),
+        ("full_inspection", _("To'liq texnik ko'rik")),
+        ("partial_inspection", _("Qisman texnik ko'rik")),
+        # Electrical/measurement checks
+        ("voltmeter_check", _("Voltmetr tekshiruvi")),
+        ("manometer_check", _("Manometr tekshiruvi")),
+        # Mechanical/hydraulic tests
+        ("hydraulic_test", _("Gidravlik sinov")),
+        ("pressure_test", _("Bosim sinovi")),
+        # Cleaning/flushing procedures
+        ("flush_test", _("Yuvish va sinov")),
+        ("inner_outer_check", _("Ichki/tashqi tekshiruv")),
+        # Specialized tests
+        ("lab_test", _("Laboratoriya tekshiruvi")),
+        ("leveling_check", _("Nivelirovka tekshiruvi")),
+        ("safety_valve_check", _("Xavfsizlik klapani tekshiruvi")),
+        # Additional checks
+        ("lubrication_check", _("Yog'lash tekshiruvi")),
+        ("alignment_check", _("Markalash tekshiruvi")),
+        ("calibration_check", _("Kalibrlash tekshiruvi")),
     )
-
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
-
-    title = models.CharField(
-        _("Xizmat turi"), max_length=100, choices=MAINTENANCE_TITLE_CHOICES
+    maintenance_type = models.CharField(
+        _("Texnik xizmat turi"),
+        max_length=50,
+        choices=MAINTENANCE_TYPE_CHOICES,
     )
     description = models.TextField(_("Ta'rif"), blank=True)
-
     scheduled_date = models.DateField(
-        _("Rejalashtirilgan sana"), null=True, blank=True
+        _("Ko'rik sanasi"), null=True, blank=True
     )
-    estimated_duration = models.PositiveIntegerField(
-        _("Taxminiy muddat (kun)"), null=True, blank=True
+    estimated_unit = models.CharField(
+        _("Taxminiy muddat birligi"),
+        max_length=10,
+        choices=[("days", _("Kun")), ("months", _("Oy")), ("years", _("Yil"))],
+        default="days",
+    )
+    estimated_value = models.PositiveIntegerField(
+        _("Taxminiy muddat qiymati"), default=1
+    )
+    next_maintenance_date = models.DateField(
+        _("Keyingi ko'rik sanasi"), null=True, blank=True
     )
 
     assigned_to = models.ForeignKey(
@@ -111,7 +93,29 @@ class MaintenanceSchedule(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.get_title_display()} - {self.scheduled_date}"
+        return f"{self.get_maintenance_type_display()} - {self.scheduled_date}"
+
+    def save(self, *args, **kwargs):
+        if (
+            self.scheduled_date
+            and self.estimated_value
+            and self.estimated_unit
+        ):
+            if self.estimated_unit == "days":
+                self.next_maintenance_date = self.scheduled_date + timedelta(
+                    days=self.estimated_value
+                )
+            elif self.estimated_unit == "months":
+                self.next_maintenance_date = (
+                    self.scheduled_date
+                    + relativedelta(months=self.estimated_value)
+                )
+            elif self.estimated_unit == "years":
+                self.next_maintenance_date = (
+                    self.scheduled_date
+                    + relativedelta(years=self.estimated_value)
+                )
+        super().save(*args, **kwargs)
 
 
 # Xizmat haqida ogohlantirish

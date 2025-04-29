@@ -16,8 +16,8 @@ class AbstractBaseEquipment(models.Model):
         _("Korxona nomi"), max_length=255, blank=True
     )
     detail_name = models.CharField(_("Detal nomi"), max_length=255, blank=True)
-    manufacture_date = models.CharField(
-        _("Ishlab chiqarilgan yili"), blank=True
+    manufacture_date = models.DateField(
+        _("Ishlab chiqarilgan yili"), null=True, blank=True
     )
     factory_number = models.CharField(
         _("Zavod raqami"), max_length=255, blank=True
