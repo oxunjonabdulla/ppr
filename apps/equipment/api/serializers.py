@@ -10,30 +10,43 @@ from apps.equipment.models import (
 
 
 class LatheMachineModelSerializers(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
     class Meta:
         model = LatheMachine
         fields = "__all__"
 
 
 class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
     class Meta:
         model = WeldingEquipment
         fields = "__all__"
 
 
 class HeatingBoilerModelSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
+
     class Meta:
         model = HeatingBoiler
         fields = "__all__"
 
 
 class LiftingCraneModelSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
+
     class Meta:
         model = LiftingCrane
         fields = "__all__"
 
 
 class PressureVesselModelSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
+
     class Meta:
         model = PressureVessel
         fields = "__all__"

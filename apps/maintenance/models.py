@@ -1,13 +1,16 @@
-from datetime import timedelta
-
-from dateutil.relativedelta import relativedelta
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from PIL import Image
+from rest_framework.exceptions import ValidationError
 
 from apps.utils.get_upload_path import get_upload_path
+
 
 #  Ta'mirlash jadvali
 # ------------------------------------------------------------------------------------------
@@ -37,9 +40,12 @@ class MaintenanceSchedule(models.Model):
         ("alignment_check", _("Markalash tekshiruvi")),
         ("calibration_check", _("Kalibrlash tekshiruvi")),
     )
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey("content_type", "object_id")
+    equipment = models.ForeignKey(
+        "equipment.Equipment",
+        on_delete=models.CASCADE,
+        verbose_name=_("Uskuna"),
+        related_name="maintenance_schedules"
+    )
     maintenance_type = models.CharField(
         _("Texnik xizmat turi"),
         max_length=50,
@@ -48,15 +54,6 @@ class MaintenanceSchedule(models.Model):
     description = models.TextField(_("Ta'rif"), blank=True)
     scheduled_date = models.DateField(
         _("Ko'rik sanasi"), null=True, blank=True
-    )
-    estimated_unit = models.CharField(
-        _("Taxminiy muddat birligi"),
-        max_length=10,
-        choices=[("days", _("Kun")), ("months", _("Oy")), ("years", _("Yil"))],
-        default="days",
-    )
-    estimated_value = models.PositiveIntegerField(
-        _("Taxminiy muddat qiymati"), default=1
     )
     next_maintenance_date = models.DateField(
         _("Keyingi ko'rik sanasi"), null=True, blank=True
@@ -95,28 +92,6 @@ class MaintenanceSchedule(models.Model):
     def __str__(self):
         return f"{self.get_maintenance_type_display()} - {self.scheduled_date}"
 
-    def save(self, *args, **kwargs):
-        if (
-            self.scheduled_date
-            and self.estimated_value
-            and self.estimated_unit
-        ):
-            if self.estimated_unit == "days":
-                self.next_maintenance_date = self.scheduled_date + timedelta(
-                    days=self.estimated_value
-                )
-            elif self.estimated_unit == "months":
-                self.next_maintenance_date = (
-                    self.scheduled_date
-                    + relativedelta(months=self.estimated_value)
-                )
-            elif self.estimated_unit == "years":
-                self.next_maintenance_date = (
-                    self.scheduled_date
-                    + relativedelta(years=self.estimated_value)
-                )
-        super().save(*args, **kwargs)
-
 
 # Xizmat haqida ogohlantirish
 # ------------------------------------------------------------------------------------------
@@ -149,12 +124,11 @@ class MaintenanceWarning(models.Model):
     )
     message = models.TextField(_("Ogohlantirish xabari"), blank=True)
     is_sent = models.BooleanField(_("Yuborildi"), default=False)
-    sent_date = models.DateTimeField(
-        _("Yuborilgan sana"), null=True, blank=True
-    )
+    sent_date = models.DateTimeField(_("Yuborilgan sana"), null=True, blank=True)
     sent_to_telegram = models.BooleanField(
-        _("Telegramga yuborilgan"), default=False
-    )
+        _("Telegramga yuborilgan"), default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _("Maintenance Warning")
@@ -166,11 +140,52 @@ class MaintenanceWarning(models.Model):
 
     def __str__(self):
         return (
-            f"{self.get_warning_level_display()} - {self.maintenance_schedule}"
-        )
+            f"{self.get_warning_level_display()} - {self.maintenance_schedule}")
+
+    def calculate_days_until_next_maintenance(self):
+        """
+        This method calculates the days remaining until the next maintenance.
+        If the next maintenance date is in the future, it returns the number of days.
+        If it's in the past, it returns a negative value.
+        """
+        if self.maintenance_schedule.next_maintenance_date:
+            return (self.maintenance_schedule.next_maintenance_date - timezone.now().date()).days
+        return None
+
+    def set_warning_time(self):
+        """
+        This method determines the warning time based on the remaining days.
+        It assigns a warning time based on predefined intervals.
+        """
+        days_left = self.calculate_days_until_next_maintenance()
+
+        if days_left is not None:
+            if days_left <= 3:
+                self.warning_time = "three_days"
+                self.warning_level = "critical"
+            elif days_left <= 7:
+                self.warning_time = "seven_days"
+                self.warning_level = "high"
+            elif days_left <= 15:
+                self.warning_time = "fifteen_days"
+                self.warning_level = "medium"
+            elif days_left <= 30:
+                self.warning_time = "one_month"
+                self.warning_level = "low"
+            else:
+                self.warning_time = None
+                self.message = ""
+                return
+                # Set the message
+
+            self.message = f"{str(self.maintenance_schedule.equipment).capitalize()} ning texnik ko‘rikga {days_left} kun qoldi. ({self.maintenance_schedule.next_maintenance_date})"
+        else:
+            self.warning_time = None
+            self.message = ""
+
+        # Uskuna nosozligi
 
 
-# Uskuna nosozligi
 # ------------------------------------------------------------------------------------------
 class EquipmentFault(models.Model):
     FAULT_SEVERITY = (
@@ -179,21 +194,13 @@ class EquipmentFault(models.Model):
         ("major", _("Jiddiy")),
         ("critical", _("Favqulodda")),
     )
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    equipment = GenericForeignKey("content_type", "object_id")
+    equipment = models.ForeignKey("equipment.Equipment",on_delete=models.CASCADE,
+        verbose_name=_("Uskuna"),related_name="faults")
     title = models.CharField(_("Nosozlik nomi"), max_length=255, blank=True)
     description = models.TextField(_("Ta'rifi"), blank=True)
-    severity = models.CharField(
-        _("Holati"), max_length=10, choices=FAULT_SEVERITY, default="moderate"
-    )
-    photo = models.ImageField(
-        _("Rasmi"),
-        upload_to=get_upload_path,
-        validators=[
-            FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png"])
-        ],
-    )
+    severity = models.CharField(_("Holati"), max_length=10, choices=FAULT_SEVERITY, default="moderate")
+    photo = models.ImageField(_("Rasmi"),upload_to=get_upload_path,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "heic"])],)
     capture_time = models.DateTimeField(
         _("Suratga olish vaqti"), null=True, blank=True
     )
@@ -218,10 +225,11 @@ class EquipmentFault(models.Model):
         blank=True,
     )
     resolution_notes = models.TextField(_("Nosozlik haqida izoh"), blank=True)
-    gps_location = models.CharField(
-        _("GPS location"), max_length=255, blank=True, null=True
-    )
 
+    gps_location = models.CharField(
+        _("GPS location"), max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name = _("Uskunalar nosozligi")
         verbose_name_plural = _("Uskunalar nosozliklari")
@@ -229,6 +237,38 @@ class EquipmentFault(models.Model):
     def __str__(self):
         return f"{self.title} - {self.equipment}"
 
+    def save(self, *args, **kwargs):
+
+        super().save(*args, **kwargs)
+
+        img = Image.open(self.photo.path)
+        max_width = 800
+        max_height = 600
+        if img.width > max_width or img.height > max_height:
+            new_size = (max_width, max_height)
+            img.thumbnail(new_size, Image.Resampling.LANCZOS)
+            img.save(self.photo.path)
+
+        if self.pk:
+            old = EquipmentFault.objects.get(pk=self.pk)
+            if old.photo and self.photo != old.photo:
+                raise ValidationError("You cannot change the photo after submission.")
+        super().save(*args, **kwargs)
+@receiver(post_delete, sender=EquipmentFault)
+def delete_fault_photo(sender, instance, **kwargs):
+    if instance.photo:
+        instance.photo.delete(save=False)
+
+@receiver(pre_save, sender=EquipmentFault)
+def delete_old_fault_photo(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            if instance.photo != old_instance.photo:
+                if old_instance.photo:
+                    old_instance.photo.delete(save=False)
+        except sender.DoesNotExist:
+            pass
 
 # Bildirishnoma jurnali
 # ------------------------------------------------------------------------------------------
@@ -257,7 +297,8 @@ class Notification(models.Model):
         choices=NOTIFICATION_TYPE,
         default="maintenance_due",
     )
-    created_at = models.DateTimeField(_("Yaratilgan vaqti"), auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     is_read = models.BooleanField(_("O‘qilgan"), default=False)
     read_at = models.DateTimeField(_("O‘qilgan vaqti"), null=True, blank=True)
     sent_to_telegram = models.BooleanField(

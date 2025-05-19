@@ -15,7 +15,7 @@ services:
       timeout: 5s
       retries: 5
 
-  web:
+  django:
     build: .
     restart: always
     env_file: .env
@@ -29,7 +29,7 @@ services:
     command: >
       sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     environment:
-      - DJANGO_SETTINGS_MODULE=root.settings.dev
+      - DJANGO_SETTINGS_MODULE=root.settings.prod
 
 volumes:
   postgres_data:

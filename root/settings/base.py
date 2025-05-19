@@ -41,18 +41,18 @@ THIRD_PARTY_APPS = [
     "djoser",
     "crispy_forms",
     "corsheaders",
-]
+    "apscheduler"]
 
 LOCALE_APPS = [
     "apps.companies",
     "apps.equipment",
     "apps.maintenance",
     "apps.users",
+    'apps.core',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCALE_APPS
 
-AUTH_USER_MODEL = "users.User"
 # MIDDLEWARE
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -104,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # INTERNATIONALIZATION
 LANGUAGE_CODE = "uz"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Tashkent"
 USE_I18N = True
 USE_TZ = True
 

@@ -6,7 +6,7 @@ User = get_user_model()
 
 class JSHSHIRBackend(ModelBackend):
     def authenticate(
-        self, request, username=None, jshshir=None, password=None, **kwargs
+            self, request, username=None, jshshir=None, password=None, **kwargs
     ):
         if jshshir is None or password is None:
             return None
