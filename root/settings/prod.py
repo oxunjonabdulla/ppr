@@ -1,9 +1,16 @@
 from . import base
 from .base import *
+
 SECRET_KEY = base.env("SECRET_KEY")
 # ALLOWED_HOSTS = ["ppr.vchdqarshi.uz"]
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "85.190.243.196", "ppr.vchdqarshi.uz", "api.ppr.vchdqarshi.uz"]
-
+ALLOWED_HOSTS = [
+    "localhost",
+    "0.0.0.0",
+    "127.0.0.1",
+    "85.190.243.196",
+    "ppr.vchdqarshi.uz",
+    "api.ppr.vchdqarshi.uz",
+]
 
 
 DATABASES = {

@@ -9,10 +9,16 @@ from apps.utils.get_upload_path import get_upload_path
 
 
 class AbstractBaseEquipment(models.Model):
-    image = models.ImageField(_("Rasm"), upload_to=get_upload_path, null=True, blank=True)
-    company_name = models.CharField(_("Korxona nomi"), max_length=255, blank=True)
+    image = models.ImageField(
+        _("Rasm"), upload_to=get_upload_path, null=True, blank=True
+    )
+    company_name = models.CharField(
+        _("Korxona nomi"), max_length=255, blank=True
+    )
     detail_name = models.CharField(_("Detal nomi"), max_length=255, blank=True)
-    manufacture_date = models.DateField(_("Ishlab chiqarilgan yili"), null=True, blank=True)
+    manufacture_date = models.DateField(
+        _("Ishlab chiqarilgan yili"), null=True, blank=True
+    )
     factory_number = models.CharField(
         _("Zavod raqami"), max_length=255, blank=True
     )
@@ -40,12 +46,12 @@ class AbstractBaseEquipment(models.Model):
     class Meta:
         abstract = True
 
+
 # Equipment Base Model
 # -----------------------------------------------------------------------------------------
 
 
 class Equipment(models.Model):
-
     LATHE_MACHINE = _("Tokarlik dastgohi")
     WELDING_EQUIPMENT = _("Payvandlash uskunalari")
     HEATING_BOILER = _("Isitish qozoni")
@@ -63,27 +69,27 @@ class Equipment(models.Model):
     type = models.CharField(max_length=100, choices=EQUIPMENT_MODEL_CHOICES)
 
     def __str__(self):
-        if self.type == 'lathe_machine':
+        if self.type == "lathe_machine":
             try:
                 return str(self.lathemachine.detail_name)
             except LatheMachine.DoesNotExist:
                 return self.get_type_display()
-        elif self.type == 'welding_equipment':
+        elif self.type == "welding_equipment":
             try:
                 return str(self.weldingequipment.detail_name)
             except WeldingEquipment.DoesNotExist:
                 return self.get_type_display()
-        elif self.type == 'heating_boiler':
+        elif self.type == "heating_boiler":
             try:
                 return str(self.heatingboiler.detail_name)
             except HeatingBoiler.DoesNotExist:
                 return self.get_type_display()
-        elif self.type == 'pressure_vessel':
+        elif self.type == "pressure_vessel":
             try:
                 return str(self.pressurevessel.detail_name)
             except PressureVessel.DoesNotExist:
                 return self.get_type_display()
-        elif self.type == 'lifting_crane':
+        elif self.type == "lifting_crane":
             try:
                 return str(self.liftingcrane.detail_name)
             except LiftingCrane.DoesNotExist:
@@ -95,13 +101,26 @@ class Equipment(models.Model):
 # Tokarlik dastgohlari
 # ------------------------------------------------------------------------------------------------
 class LatheMachine(AbstractBaseEquipment, Equipment):
-    AUTO_TYPE = 'lathe_machine'
-    is_conserved = models.BooleanField(default=False, verbose_name="Konservatsiyaga olish")
-    conservation_reason = models.TextField(blank=True, null=True, verbose_name="Konservatsiya sababi")
+    AUTO_TYPE = "lathe_machine"
+    is_conserved = models.BooleanField(
+        default=False, verbose_name="Konservatsiyaga olish"
+    )
+    conservation_reason = models.TextField(
+        blank=True, null=True, verbose_name="Konservatsiya sababi"
+    )
     notes = models.TextField(blank=True, null=True, verbose_name="Tavsiyalar")
-    author = models.ForeignKey("users.User",on_delete=models.SET_NULL,null=True,related_name="lathe_machine_author")
-    created_at = models.DateTimeField(verbose_name=_("Yaratilgan vaqti"), auto_now_add=True)
-    updated_at = models.DateTimeField(verbose_name=_("O'zgartirilgan vaqti"), auto_now=True)
+    author = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="lathe_machine_author",
+    )
+    created_at = models.DateTimeField(
+        verbose_name=_("Yaratilgan vaqti"), auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        verbose_name=_("O'zgartirilgan vaqti"), auto_now=True
+    )
 
     class Meta:
         verbose_name = "Tokarlik dastgohi"
@@ -114,10 +133,11 @@ class LatheMachine(AbstractBaseEquipment, Equipment):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
 
+
 # Payvandlash uskunalari
 # ------------------------------------------------------------------------------------------
 class WeldingEquipment(AbstractBaseEquipment, Equipment):
-    AUTO_TYPE = 'welding_equipment'
+    AUTO_TYPE = "welding_equipment"
     is_conserved = models.BooleanField(
         default=False, verbose_name="Konservatsiyaga olish"
     )
@@ -148,10 +168,11 @@ class WeldingEquipment(AbstractBaseEquipment, Equipment):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
 
+
 # Isitish qozoni
 # ------------------------------------------------------------------------------------------
 class HeatingBoiler(AbstractBaseEquipment, Equipment):
-    AUTO_TYPE = 'heating_boiler'
+    AUTO_TYPE = "heating_boiler"
     fuel_type = models.CharField(
         max_length=100, verbose_name="Yoqilg‘i turi", blank=True
     )
@@ -180,7 +201,7 @@ class HeatingBoiler(AbstractBaseEquipment, Equipment):
 # Yuk ko'taruvchi kranlar
 # ------------------------------------------------------------------------------------------
 class LiftingCrane(AbstractBaseEquipment, Equipment):
-    AUTO_TYPE = 'lifting_crane'
+    AUTO_TYPE = "lifting_crane"
     under_crane_path_length = models.CharField(
         max_length=100, verbose_name="Kran osti yo‘li uzunligi"
     )
@@ -215,7 +236,7 @@ class LiftingCrane(AbstractBaseEquipment, Equipment):
 # Bosim ostida sig'imlar
 # -----------------------------------------------------------------------------------------
 class PressureVessel(AbstractBaseEquipment, Equipment):
-    AUTO_TYPE = 'pressure_vessel'
+    AUTO_TYPE = "pressure_vessel"
     category_name = models.CharField(
         max_length=100, verbose_name="Sig‘imning kategoriyasi", blank=True
     )

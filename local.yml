@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
 
-  django:
+  web:
     build: .
     restart: always
     env_file: .env  # Local environment variables file

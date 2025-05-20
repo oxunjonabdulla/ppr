@@ -11,7 +11,6 @@ from rest_framework.exceptions import ValidationError
 
 from apps.utils.get_upload_path import get_upload_path
 
-
 #  Ta'mirlash jadvali
 # ------------------------------------------------------------------------------------------
 
@@ -44,7 +43,7 @@ class MaintenanceSchedule(models.Model):
         "equipment.Equipment",
         on_delete=models.CASCADE,
         verbose_name=_("Uskuna"),
-        related_name="maintenance_schedules"
+        related_name="maintenance_schedules",
     )
     maintenance_type = models.CharField(
         _("Texnik xizmat turi"),
@@ -124,9 +123,12 @@ class MaintenanceWarning(models.Model):
     )
     message = models.TextField(_("Ogohlantirish xabari"), blank=True)
     is_sent = models.BooleanField(_("Yuborildi"), default=False)
-    sent_date = models.DateTimeField(_("Yuborilgan sana"), null=True, blank=True)
+    sent_date = models.DateTimeField(
+        _("Yuborilgan sana"), null=True, blank=True
+    )
     sent_to_telegram = models.BooleanField(
-        _("Telegramga yuborilgan"), default=False)
+        _("Telegramga yuborilgan"), default=False
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -140,7 +142,8 @@ class MaintenanceWarning(models.Model):
 
     def __str__(self):
         return (
-            f"{self.get_warning_level_display()} - {self.maintenance_schedule}")
+            f"{self.get_warning_level_display()} - {self.maintenance_schedule}"
+        )
 
     def calculate_days_until_next_maintenance(self):
         """
@@ -149,7 +152,10 @@ class MaintenanceWarning(models.Model):
         If it's in the past, it returns a negative value.
         """
         if self.maintenance_schedule.next_maintenance_date:
-            return (self.maintenance_schedule.next_maintenance_date - timezone.now().date()).days
+            return (
+                self.maintenance_schedule.next_maintenance_date
+                - timezone.now().date()
+            ).days
         return None
 
     def set_warning_time(self):
@@ -194,13 +200,26 @@ class EquipmentFault(models.Model):
         ("major", _("Jiddiy")),
         ("critical", _("Favqulodda")),
     )
-    equipment = models.ForeignKey("equipment.Equipment",on_delete=models.CASCADE,
-        verbose_name=_("Uskuna"),related_name="faults")
+    equipment = models.ForeignKey(
+        "equipment.Equipment",
+        on_delete=models.CASCADE,
+        verbose_name=_("Uskuna"),
+        related_name="faults",
+    )
     title = models.CharField(_("Nosozlik nomi"), max_length=255, blank=True)
     description = models.TextField(_("Ta'rifi"), blank=True)
-    severity = models.CharField(_("Holati"), max_length=10, choices=FAULT_SEVERITY, default="moderate")
-    photo = models.ImageField(_("Rasmi"),upload_to=get_upload_path,
-        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "heic"])],)
+    severity = models.CharField(
+        _("Holati"), max_length=10, choices=FAULT_SEVERITY, default="moderate"
+    )
+    photo = models.ImageField(
+        _("Rasmi"),
+        upload_to=get_upload_path,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png", "heic"]
+            )
+        ],
+    )
     capture_time = models.DateTimeField(
         _("Suratga olish vaqti"), null=True, blank=True
     )
@@ -227,9 +246,11 @@ class EquipmentFault(models.Model):
     resolution_notes = models.TextField(_("Nosozlik haqida izoh"), blank=True)
 
     gps_location = models.CharField(
-        _("GPS location"), max_length=255, blank=True, null=True)
+        _("GPS location"), max_length=255, blank=True, null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name = _("Uskunalar nosozligi")
         verbose_name_plural = _("Uskunalar nosozliklari")
@@ -238,7 +259,6 @@ class EquipmentFault(models.Model):
         return f"{self.title} - {self.equipment}"
 
     def save(self, *args, **kwargs):
-
         super().save(*args, **kwargs)
 
         img = Image.open(self.photo.path)
@@ -252,12 +272,17 @@ class EquipmentFault(models.Model):
         if self.pk:
             old = EquipmentFault.objects.get(pk=self.pk)
             if old.photo and self.photo != old.photo:
-                raise ValidationError("You cannot change the photo after submission.")
+                raise ValidationError(
+                    "You cannot change the photo after submission."
+                )
         super().save(*args, **kwargs)
+
+
 @receiver(post_delete, sender=EquipmentFault)
 def delete_fault_photo(sender, instance, **kwargs):
     if instance.photo:
         instance.photo.delete(save=False)
+
 
 @receiver(pre_save, sender=EquipmentFault)
 def delete_old_fault_photo(sender, instance, **kwargs):
@@ -269,6 +294,7 @@ def delete_old_fault_photo(sender, instance, **kwargs):
                     old_instance.photo.delete(save=False)
         except sender.DoesNotExist:
             pass
+
 
 # Bildirishnoma jurnali
 # ------------------------------------------------------------------------------------------

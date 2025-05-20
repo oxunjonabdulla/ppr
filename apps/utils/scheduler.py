@@ -11,15 +11,18 @@ def check_maintenance_warnings():
 
     for schedule in maintenance_schedules:
         # Check if the warning already exists
-        warning = MaintenanceWarning.objects.filter(maintenance_schedule=schedule, is_sent=False).first()
+        warning = MaintenanceWarning.objects.filter(
+            maintenance_schedule=schedule, is_sent=False
+        ).first()
 
         # If no warning exists, create one
         if not warning:
-            warning = MaintenanceWarning.objects.create(maintenance_schedule=schedule)
+            warning = MaintenanceWarning.objects.create(
+                maintenance_schedule=schedule
+            )
 
         # Set warning time and level
         warning.set_warning_time()
-
 
         # Save the warning if it's due
         if warning.warning_time:
@@ -40,6 +43,6 @@ def start():
     scheduler = BackgroundScheduler()
 
     # Schedule the maintenance warning check job every 24 hours
-    scheduler.add_job(check_maintenance_warnings, 'interval', hours=3)
+    scheduler.add_job(check_maintenance_warnings, "interval", hours=3)
     # Start the scheduler
     scheduler.start()

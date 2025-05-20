@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from apps.maintenance.models import MaintenanceSchedule, MaintenanceWarning, EquipmentFault
+from apps.maintenance.models import (
+    EquipmentFault,
+    MaintenanceSchedule,
+    MaintenanceWarning,
+)
 
 
 class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
@@ -11,7 +15,8 @@ class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "next_maintenance_date",  # calculated automatically in save()
             "created_at",
-            "updated_at", ]
+            "updated_at",
+        ]
 
 
 class MaintenanceWarningModelSerializer(serializers.ModelSerializer):

@@ -3,14 +3,22 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
 from rest_framework import filters, generics, permissions, status
 from rest_framework.exceptions import NotFound
-from rest_framework.generics import ListCreateAPIView, ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
 
-from apps.maintenance.models import MaintenanceSchedule, MaintenanceWarning, EquipmentFault
+from apps.maintenance.models import (
+    EquipmentFault,
+    MaintenanceSchedule,
+    MaintenanceWarning,
+)
 from apps.users.api.permissions import IsEquipmentMaster, IsEquipmentOperator
 from apps.utils.paginator import StandardResultsSetPagination  # Assuming you have this
-from .serializers import MaintenanceScheduleModelSerializer, MaintenanceWarningModelSerializer, \
-    EquipmentFaultModelSerializer
+
+from .serializers import (
+    EquipmentFaultModelSerializer,
+    MaintenanceScheduleModelSerializer,
+    MaintenanceWarningModelSerializer,
+)
 
 
 # ------------------------------------------------------------------------------------------
@@ -35,11 +43,14 @@ class MaintenanceScheduleListCreateAPIView(generics.ListCreateAPIView):
         return Response(
             {"status": status.HTTP_201_CREATED, "data": serializer.data},
             status=status.HTTP_201_CREATED,
-            headers=headers)
+            headers=headers,
+        )
 
 
 @extend_schema(tags=["Ta'mirlash jadvali"])
-class MaintenanceScheduleRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+class MaintenanceScheduleRetrieveUpdateDestroyAPIView(
+    generics.RetrieveUpdateDestroyAPIView
+):
     queryset = MaintenanceSchedule.objects.all()
     serializer_class = MaintenanceScheduleModelSerializer
     permission_classes = [permissions.IsAuthenticated, IsEquipmentMaster]
@@ -49,13 +60,16 @@ class MaintenanceScheduleRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDes
             instance = MaintenanceSchedule.objects.get(pk=self.kwargs["pk"])
             return instance
         except MaintenanceSchedule.DoesNotExist:
-            raise NotFound(_("Bu id raqamga mos ta'mirlash jadvali mavjud emas"))
+            raise NotFound(
+                _("Bu id raqamga mos ta'mirlash jadvali mavjud emas")
+            )
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(
-            {"status": status.HTTP_200_OK, "data": serializer.data})
+            {"status": status.HTTP_200_OK, "data": serializer.data}
+        )
 
 
 #  MaintenanceWarnings
@@ -73,7 +87,9 @@ class MaintenanceWarningListAPIView(ListAPIView):
 
 
 @extend_schema(tags=["Ta'mirlash ogohlantirishlari"])
-class MaintenanceWarningRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+class MaintenanceWarningRetrieveUpdateDestroyAPIView(
+    generics.RetrieveUpdateDestroyAPIView
+):
     queryset = MaintenanceWarning.objects.all()
     serializer_class = MaintenanceWarningModelSerializer
     permission_classes = [permissions.IsAuthenticated, IsEquipmentMaster]
@@ -83,17 +99,21 @@ class MaintenanceWarningRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDest
             instance = MaintenanceWarning.objects.get(pk=self.kwargs["pk"])
             return instance
         except MaintenanceWarning.DoesNotExist:
-            raise NotFound(_("Bu id raqamga mos ta'mirlash ogohlantirishlari mavjud emas"))
+            raise NotFound(
+                _("Bu id raqamga mos ta'mirlash ogohlantirishlari mavjud emas")
+            )
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(
-            {"status": status.HTTP_200_OK, "data": serializer.data})
+            {"status": status.HTTP_200_OK, "data": serializer.data}
+        )
 
 
 #  EquipmentFault
 #  -----------------------------------------------------------------------------
+
 
 @extend_schema(tags=["Uskunalar nosozligi"])
 class EquipmentFaultListCreateAPIView(ListCreateAPIView):
@@ -115,6 +135,5 @@ class EquipmentFaultListCreateAPIView(ListCreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(
             data={"status": status.HTTP_201_CREATED, "data": serializer.data},
-            headers=headers)
-
-
+            headers=headers,
+        )

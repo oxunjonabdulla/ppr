@@ -28,7 +28,6 @@ class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
 class HeatingBoilerModelSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
 
-
     class Meta:
         model = HeatingBoiler
         fields = "__all__"
@@ -37,7 +36,6 @@ class HeatingBoilerModelSerializer(serializers.ModelSerializer):
 class LiftingCraneModelSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
 
-
     class Meta:
         model = LiftingCrane
         fields = "__all__"
@@ -45,7 +43,6 @@ class LiftingCraneModelSerializer(serializers.ModelSerializer):
 
 class PressureVesselModelSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
-
 
     class Meta:
         model = PressureVessel
