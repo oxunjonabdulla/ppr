@@ -12,7 +12,9 @@ from apps.maintenance.models import (
     MaintenanceWarning,
 )
 from apps.users.api.permissions import IsEquipmentMaster, IsEquipmentOperator
-from apps.utils.paginator import StandardResultsSetPagination  # Assuming you have this
+from apps.utils.paginator import (  # Assuming you have this
+    StandardResultsSetPagination,
+)
 
 from .serializers import (
     EquipmentFaultModelSerializer,
