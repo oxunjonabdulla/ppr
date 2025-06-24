@@ -1,5 +1,5 @@
 from . import base
-from .base import *
+from .base import *  # noqa: F403
 
 SECRET_KEY = base.env("SECRET_KEY")
 # ALLOWED_HOSTS = ["ppr.vchdqarshi.uz"]
