@@ -2,9 +2,13 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from PIL import Image
+from rest_framework.exceptions import ValidationError
 
-from apps.users.models import User
 from apps.utils.get_upload_path import get_upload_path
 
 #  Ta'mirlash jadvali
@@ -12,34 +16,48 @@ from apps.utils.get_upload_path import get_upload_path
 
 
 class MaintenanceSchedule(models.Model):
-    """
-    Model for scheduling equipment maintenance.
-    """
-
     MAINTENANCE_TYPE_CHOICES = (
-        ("preventive", _("Oldini olish")),
-        ("corrective", _("Tuzatish")),
-        ("condition_based", _("Holatga asoslangan")),
-        ("predictive", _("Bashoratli")),
+        # General maintenance types (applicable to multiple equipment types)
+        ("inspection", _("Texnik ko'rik")),
+        ("full_inspection", _("To'liq texnik ko'rik")),
+        ("partial_inspection", _("Qisman texnik ko'rik")),
+        # Electrical/measurement checks
+        ("voltmeter_check", _("Voltmetr tekshiruvi")),
+        ("manometer_check", _("Manometr tekshiruvi")),
+        # Mechanical/hydraulic tests
+        ("hydraulic_test", _("Gidravlik sinov")),
+        ("pressure_test", _("Bosim sinovi")),
+        # Cleaning/flushing procedures
+        ("flush_test", _("Yuvish va sinov")),
+        ("inner_outer_check", _("Ichki/tashqi tekshiruv")),
+        # Specialized tests
+        ("lab_test", _("Laboratoriya tekshiruvi")),
+        ("leveling_check", _("Nivelirovka tekshiruvi")),
+        ("safety_valve_check", _("Xavfsizlik klapani tekshiruvi")),
+        # Additional checks
+        ("lubrication_check", _("Yog'lash tekshiruvi")),
+        ("alignment_check", _("Markalash tekshiruvi")),
+        ("calibration_check", _("Kalibrlash tekshiruvi")),
+    )
+    equipment = models.ForeignKey(
+        "equipment.Equipment",
+        on_delete=models.CASCADE,
+        verbose_name=_("Uskuna"),
+        related_name="maintenance_schedules",
+    )
+    maintenance_type = models.CharField(
+        _("Texnik xizmat turi"),
+        max_length=50,
+        choices=MAINTENANCE_TYPE_CHOICES,
+    )
+    description = models.TextField(_("Ta'rif"), blank=True)
+    scheduled_date = models.DateField(
+        _("Ko'rik sanasi"), null=True, blank=True
+    )
+    next_maintenance_date = models.DateField(
+        _("Keyingi ko'rik sanasi"), null=True, blank=True
     )
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey("content_type", "object_id")
-    maintenance_type = models.CharField(
-        _("Xizmat turi"),
-        max_length=25,
-        choices=MAINTENANCE_TYPE_CHOICES,
-        default="preventive",
-    )
-    title = models.CharField(_("Nomi"), max_length=255, blank=True)
-    description = models.TextField(_("Ta'rif"), blank=True)
-    scheduled_date = models.DateTimeField(
-        _("Rejalashtirilgan sana"), null=True, blank=True
-    )
-    estimated_duration = models.PositiveIntegerField(
-        _("Taxminiy muddat"), default=1, null=True, blank=True
-    )
     assigned_to = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
@@ -47,9 +65,10 @@ class MaintenanceSchedule(models.Model):
         null=True,
         blank=True,
     )
+
     is_completed = models.BooleanField(_("Bajarildi"), default=False)
-    completed_date = models.DateTimeField(
-        _("Bajarilgan vaqti"), null=True, blank=True
+    completed_date = models.DateField(
+        _("Bajarilgan sana"), null=True, blank=True
     )
     completed_by = models.ForeignKey(
         "users.User",
@@ -58,6 +77,7 @@ class MaintenanceSchedule(models.Model):
         null=True,
         blank=True,
     )
+
     created_by = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
@@ -69,37 +89,7 @@ class MaintenanceSchedule(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.content_object} uchun {self.scheduled_date} kuni texnik xizmat ko'rsatish"
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-        # I can handle updates to content_object if it has next_maintenance or last_maintenance
-        obj = self.content_object
-        fields_to_update = []
-
-        if hasattr(obj, "next_maintenance") and not self.is_completed:
-            if (
-                not obj.next_maintenance
-                or self.scheduled_date < obj.next_maintenance
-            ):
-                obj.next_maintenance = self.scheduled_date
-                fields_to_update.append("next_maintenance")
-
-        if (
-            hasattr(obj, "last_maintenance")
-            and self.is_completed
-            and self.completed_date
-        ):
-            if (
-                not obj.last_maintenance
-                or self.completed_date > obj.last_maintenance
-            ):
-                obj.last_maintenance = self.completed_date
-                fields_to_update.append("last_maintenance")
-
-        if fields_to_update:
-            obj.save(update_fields=fields_to_update)
+        return f"{self.get_maintenance_type_display()} - {self.scheduled_date}"
 
 
 # Xizmat haqida ogohlantirish
@@ -107,10 +97,12 @@ class MaintenanceSchedule(models.Model):
 
 
 class MaintenanceWarning(models.Model):
-    """
-    Model for maintenance warnings sent to user
-    """
-
+    WARNING_TIME = (
+        ("one_month", _("1 oy oldin")),
+        ("fifteen_days", _("15 kun oldin")),
+        ("seven_days", _("7 kun oldin")),
+        ("three_days", _("3 kun oldin")),
+    )
     WARNING_LEVELS = (
         ("low", _("Past")),
         ("medium", _("O‘rta")),
@@ -126,46 +118,94 @@ class MaintenanceWarning(models.Model):
         choices=WARNING_LEVELS,
         default="medium",
     )
-    days_before = models.PositiveIntegerField(
-        _("Belgilangan sanadan bir necha kun oldin"),
-        default=10,
-        null=True,
-        blank=True,
+    warning_time = models.CharField(
+        _("Ogohlantirish vaqti"), max_length=20, choices=WARNING_TIME
     )
     message = models.TextField(_("Ogohlantirish xabari"), blank=True)
     is_sent = models.BooleanField(_("Yuborildi"), default=False)
     sent_date = models.DateTimeField(
         _("Yuborilgan sana"), null=True, blank=True
     )
+    sent_to_telegram = models.BooleanField(
+        _("Telegramga yuborilgan"), default=False
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _("Maintenance Warning")
         verbose_name_plural = _("Maintenance Warnings")
+        unique_together = (
+            "maintenance_schedule",
+            "warning_level",
+        )  # Prevent duplicate warnings
 
     def __str__(self):
-        return f"{self.get_warning_level_display()}  {self.maintenance_schedule.title} uchun ogohlantirish"
+        return (
+            f"{self.get_warning_level_display()} - {self.maintenance_schedule}"
+        )
+
+    def calculate_days_until_next_maintenance(self):
+        """
+        This method calculates the days remaining until the next maintenance.
+        If the next maintenance date is in the future, it returns the number of days.
+        If it's in the past, it returns a negative value.
+        """
+        if self.maintenance_schedule.next_maintenance_date:
+            return (
+                self.maintenance_schedule.next_maintenance_date
+                - timezone.now().date()
+            ).days
+        return None
+
+    def set_warning_time(self):
+        """
+        This method determines the warning time based on the remaining days.
+        It assigns a warning time based on predefined intervals.
+        """
+        days_left = self.calculate_days_until_next_maintenance()
+
+        if days_left is not None:
+            if days_left <= 3:
+                self.warning_time = "three_days"
+                self.warning_level = "critical"
+            elif days_left <= 7:
+                self.warning_time = "seven_days"
+                self.warning_level = "high"
+            elif days_left <= 15:
+                self.warning_time = "fifteen_days"
+                self.warning_level = "medium"
+            elif days_left <= 30:
+                self.warning_time = "one_month"
+                self.warning_level = "low"
+            else:
+                self.warning_time = None
+                self.message = ""
+                return
+                # Set the message
+
+            self.message = f"{str(self.maintenance_schedule.equipment).capitalize()} ning texnik ko‘rikga {days_left} kun qoldi. ({self.maintenance_schedule.next_maintenance_date})"
+        else:
+            self.warning_time = None
+            self.message = ""
+
+        # Uskuna nosozligi
 
 
-# Uskuna nosozligi
 # ------------------------------------------------------------------------------------------
 class EquipmentFault(models.Model):
-    """
-    Model for recording equipment faults by equipment masters.
-    Includes timestamp and photo evidence.
-    """
-
     FAULT_SEVERITY = (
         ("minor", _("Yengil")),
         ("moderate", _("O‘rtacha")),
         ("major", _("Jiddiy")),
         ("critical", _("Favqulodda")),
     )
-
-    # Generic Foreign Key setup
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    equipment = GenericForeignKey("content_type", "object_id")
-
+    equipment = models.ForeignKey(
+        "equipment.Equipment",
+        on_delete=models.CASCADE,
+        verbose_name=_("Uskuna"),
+        related_name="faults",
+    )
     title = models.CharField(_("Nosozlik nomi"), max_length=255, blank=True)
     description = models.TextField(_("Ta'rifi"), blank=True)
     severity = models.CharField(
@@ -175,7 +215,9 @@ class EquipmentFault(models.Model):
         _("Rasmi"),
         upload_to=get_upload_path,
         validators=[
-            FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png"])
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png", "heic"]
+            )
         ],
     )
     capture_time = models.DateTimeField(
@@ -202,9 +244,12 @@ class EquipmentFault(models.Model):
         blank=True,
     )
     resolution_notes = models.TextField(_("Nosozlik haqida izoh"), blank=True)
+
     gps_location = models.CharField(
         _("GPS location"), max_length=255, blank=True, null=True
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _("Uskunalar nosozligi")
@@ -213,28 +258,53 @@ class EquipmentFault(models.Model):
     def __str__(self):
         return f"{self.title} - {self.equipment}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        img = Image.open(self.photo.path)
+        max_width = 800
+        max_height = 600
+        if img.width > max_width or img.height > max_height:
+            new_size = (max_width, max_height)
+            img.thumbnail(new_size, Image.Resampling.LANCZOS)
+            img.save(self.photo.path)
+
+        if self.pk:
+            old = EquipmentFault.objects.get(pk=self.pk)
+            if old.photo and self.photo != old.photo:
+                raise ValidationError(
+                    "You cannot change the photo after submission."
+                )
+        super().save(*args, **kwargs)
+
+
+@receiver(post_delete, sender=EquipmentFault)
+def delete_fault_photo(sender, instance, **kwargs):
+    if instance.photo:
+        instance.photo.delete(save=False)
+
+
+@receiver(pre_save, sender=EquipmentFault)
+def delete_old_fault_photo(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            if instance.photo != old_instance.photo:
+                if old_instance.photo:
+                    old_instance.photo.delete(save=False)
+        except sender.DoesNotExist:
+            pass
+
 
 # Bildirishnoma jurnali
 # ------------------------------------------------------------------------------------------
-
-
 class Notification(models.Model):
-    """
-    Model for system notifications to users and Telegram group
-    """
-
     NOTIFICATION_TYPE = (
-        (
-            "maintenance_due",
-            _("Texnik xizmat muddati yaqinlashmoqda"),
-        ),  # Maintenance Due
-        (
-            "maintenance_completed",
-            _("Texnik xizmat bajarildi"),
-        ),  # Maintenance Completed
-        ("fault_reported", _("Nosozlik aniqlandi")),  # Fault Reported
-        ("fault_resolved", _("Nosozlik bartaraf etildi")),  # Fault Resolved
-        ("system", _("Tizim xabarnomasi")),  # System Notification
+        ("maintenance_due", _("Texnik xizmat muddati yaqinlashmoqda")),
+        ("maintenance_completed", _("Texnik xizmat bajarildi")),
+        ("fault_reported", _("Nosozlik aniqlandi")),
+        ("fault_resolved", _("Nosozlik bartaraf etildi")),
+        ("system", _("Tizim xabarnomasi")),
     )
     user = models.ForeignKey(
         "users.User",
@@ -253,7 +323,8 @@ class Notification(models.Model):
         choices=NOTIFICATION_TYPE,
         default="maintenance_due",
     )
-    created_at = models.DateTimeField(_("Yaratilgan vaqti"), auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     is_read = models.BooleanField(_("O‘qilgan"), default=False)
     read_at = models.DateTimeField(_("O‘qilgan vaqti"), null=True, blank=True)
     sent_to_telegram = models.BooleanField(

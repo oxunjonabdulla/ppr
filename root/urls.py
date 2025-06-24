@@ -5,31 +5,31 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+# ✅ API routes should not be localized
 urlpatterns = [
-    path(
-        "i18n/", include("django.conf.urls.i18n")
-    ),  # Required for language switching
-]
-
-# Internationalized patterns
-urlpatterns += i18n_patterns(
-    path(settings.ADMIN_URL, admin.site.urls),
+    path("i18n/", include("django.conf.urls.i18n")),
+    # API routes (no /uz/ prefix)
     path("api/", include("apps.users.api.urls")),
     path("api/", include("apps.companies.api.urls")),
+    path("api/", include("apps.equipment.api.urls")),
+    path("api/", include("apps.maintenance.api.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
+]
+
+# ✅ Only admin and frontend routes get language prefix
+urlpatterns += i18n_patterns(
+    path(settings.ADMIN_URL, admin.site.urls),
     prefix_default_language=True,
 )
 
-# Static and media files
+# Static/media files
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += static(
-    settings.STATIC_URL, document_root=settings.STATIC_ROOT
-)  # Fixed: should use STATIC_ROOT not MEDIA_ROOT
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Debug URLs
 if settings.DEBUG:

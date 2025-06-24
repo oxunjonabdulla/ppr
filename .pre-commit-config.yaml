@@ -15,21 +15,20 @@ repos:
     rev: 23.12.1
     hooks:
       - id: black
-        args: [ '--line-length', '79' ]
+        args: [ '--line-length', '79' ]  # black line length = 79
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
-        args: [ '--profile', 'black' ]
+        args: [ '--profile', 'black', '--line-length', '79' ]  # isort now matches black
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
-        args: ['--max-line-length=79', '--ignore=E501,W503,F401']
+        args: [ '--max-line-length=79', '--ignore=E501,W503,F401' ]
 
-  # Django specific hooks (only include if you're using Django)
   - repo: https://github.com/adamchainz/django-upgrade
     rev: 1.15.0
     hooks:

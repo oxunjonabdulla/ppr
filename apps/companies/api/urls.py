@@ -1,11 +1,19 @@
 from django.urls import path
 
-from .views import CompaniesListCreateAPIView
+from apps.companies.api.views import (
+    CompanyListCreateAPIView,
+    CompanyRetrieveUpdateDestroyAPIView,
+)
 
 urlpatterns = [
     path(
-        "companies-list-create/",
-        CompaniesListCreateAPIView.as_view(),
-        name="companies-list-create",
+        "company-list-create/",
+        CompanyListCreateAPIView.as_view(),
+        name="company-list-create",
+    ),
+    path(
+        "company-detail/<int:pk>/",
+        CompanyRetrieveUpdateDestroyAPIView.as_view(),
+        name="company-detail",
     ),
 ]

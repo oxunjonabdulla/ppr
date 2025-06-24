@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.users.api.serializers import TokenObtainSerializer, UserSerializer
 
 
+@extend_schema(tags=["Users"])
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = TokenObtainSerializer
 
@@ -20,6 +21,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return super().post(request, *args, **kwargs)
 
 
+@extend_schema(tags=["Users"])
 class CurrentUserAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
