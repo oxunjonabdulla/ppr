@@ -224,3 +224,8 @@ SPECTACULAR_SETTINGS = {
 
 # CORS
 CORS_URLS_REGEX = r"^/api/.*$"
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.ppr.vchdqarshi.uz",
+    "https://www.api.ppr.vchdqarshi.uz",
+]
