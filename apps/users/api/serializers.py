@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from apps.users.models import LoginLog
 from apps.users.models import User as UserType
 
 User = get_user_model()
@@ -11,7 +12,24 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer[UserType]):
     class Meta:
         model = User
-        fields = ["id", "username", "name", "role"]
+        fields = [
+            "id",
+            "username",
+            "name",
+            "role",
+            "image",
+            "company",
+            "phone_number",
+            "email",
+        ]
+
+
+class LoginLogSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = LoginLog
+        fields = ["id", "user", "device", "time"]
 
 
 class TokenObtainSerializer(TokenObtainPairSerializer):

@@ -133,3 +133,14 @@ class User(AbstractUser):
 
         self.clean()
         super().save(*args, **kwargs)
+
+
+class LoginLog(models.Model):
+    user = models.ForeignKey(
+        "users.User", on_delete=models.CASCADE, related_name="login_logs"
+    )
+    device = models.TextField()
+    time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.time}"
