@@ -61,3 +61,7 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         }
 
         return data
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()

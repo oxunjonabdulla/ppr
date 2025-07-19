@@ -4,6 +4,7 @@ from apps.users.api.views import (
     CurrentUserAPIView,
     CustomTokenObtainPairView,
     LoginLogListAPIView,
+    LogoutApiView,
     UserListAPIView,
 )
 
@@ -21,4 +22,5 @@ urlpatterns = [
         LoginLogListAPIView.as_view(),
         name="user-login-logs",
     ),
+    path("api/logout/", LogoutApiView.as_view(), name="logout"),
 ]
