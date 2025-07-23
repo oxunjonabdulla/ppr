@@ -5,6 +5,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from apps.users.models import LoginLog
 from apps.users.models import User as UserType
+from apps.users.models import UserRole
 
 User = get_user_model()
 
@@ -61,6 +62,38 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         }
 
         return data
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "password",
+            "name",
+            "last_name",
+            "role",
+            "company",
+            "jshshir",
+            "phone_number",
+            "image",
+        ]
+
+    def validate(self, data):
+        if data.get("role") == UserRole.SUPERUSER:
+            raise serializers.ValidationError(
+                "'Superuser' rolini qo'lda belgilash mumkin emas."
+            )
+        return data
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class LogoutSerializer(serializers.Serializer):

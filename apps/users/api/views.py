@@ -3,17 +3,19 @@ from sys import exception
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from apps.users.api.permissions import IsEquipmentMaster
 from apps.users.api.serializers import (
     LoginLogSerializer,
     LogoutSerializer,
     TokenObtainSerializer,
+    UserCreateSerializer,
     UserSerializer,
 )
 from apps.users.models import LoginLog
@@ -82,3 +84,10 @@ class LogoutApiView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
                 exception=e,
             )
+
+
+@extend_schema(tags=["Users"])
+class UserCreateAPIView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
+    permission_classes = [IsEquipmentMaster]
