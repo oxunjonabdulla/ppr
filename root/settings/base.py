@@ -21,7 +21,6 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
 # APPLICATIONS
 DJANGO_APPS = [
-    "modeltranslation",
     "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -109,12 +108,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-LANGUAGES = [("uz", "Uzbek"), ("ru", "Russian")]
-MODELTRANSLATION_DEFAULT_LANGUAGE = "uz"
-MODELTRANSLATION_LANGUAGES = ("uz", "ru")
-MODELTRANSLATION_FALLBACK_LANGUAGES = ("uz",)
-MODELTRANSLATION_TRANSLATION_FILES = ("apps.utils.translation",)
-MODELTRANSLATION_AUTO_POPULATE = True
 
 # STATIC & MEDIA
 STATIC_URL = "/static/"
