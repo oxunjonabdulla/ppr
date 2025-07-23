@@ -226,3 +226,5 @@ CSRF_TRUSTED_ORIGINS = [
     "https://api.ppr.vchdqarshi.uz",
     "https://www.api.ppr.vchdqarshi.uz",
 ]
+
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "https://ppr.vchdqarshi.uz"]
