@@ -49,7 +49,15 @@ class CurrentUserAPIView(APIView):
 class UserListAPIView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]  # ✅ Only admin can see all users
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]  # ✅ Only admin can see all users
+
+    def get(self, request):
+        queryset = self.get_queryset()
+        return Response(
+            {"results": self.serializer_class(queryset, many=True).data}
+        )
 
 
 @extend_schema(tags=["Users"])
