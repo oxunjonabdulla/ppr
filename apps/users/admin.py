@@ -19,7 +19,7 @@ class UserAdmin(BaseUserAdmin):
             {
                 "fields": (
                     "name",
-                    "email",
+                    "phone_number",
                     "role",
                     "company",
                     "jshshir",
