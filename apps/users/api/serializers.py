@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from apps.companies.api.serializers import CompanyModelSerializer
 from apps.users.models import LoginLog
 from apps.users.models import User as UserType
 from apps.users.models import UserRole
@@ -11,6 +12,8 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer[UserType]):
+    company = CompanyModelSerializer(read_only=True)
+
     class Meta:
         model = User
         fields = [
