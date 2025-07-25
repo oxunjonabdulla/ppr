@@ -19,6 +19,7 @@ from apps.users.api.serializers import (
     UserSerializer,
 )
 from apps.users.models import LoginLog
+from apps.utils.paginator import StandardResultsSetPagination
 
 User = get_user_model()
 
@@ -49,9 +50,8 @@ class CurrentUserAPIView(APIView):
 class UserListAPIView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [
-        permissions.IsAuthenticated
-    ]  # ✅ Only admin can see all users
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get(self, request):
         queryset = self.get_queryset()
@@ -63,6 +63,7 @@ class UserListAPIView(ListAPIView):
 @extend_schema(tags=["Users"])
 class LoginLogListAPIView(ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     def get(self, request):
         logs = request.user.login_logs.all().order_by("-time")
