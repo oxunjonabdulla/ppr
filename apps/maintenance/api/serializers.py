@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.equipment.api.serializers import EquipmentPolymorphicSerializer
 from apps.maintenance.models import (
     EquipmentFault,
     MaintenanceSchedule,
@@ -8,6 +9,8 @@ from apps.maintenance.models import (
 
 
 class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
+    equipment = EquipmentPolymorphicSerializer(read_only=True)
+
     class Meta:
         model = MaintenanceSchedule
         # exclude = ["equipment__type"]

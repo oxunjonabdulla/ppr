@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.equipment.models import (
+    Equipment,
     HeatingBoiler,
     LatheMachine,
     LiftingCrane,
@@ -46,4 +47,26 @@ class PressureVesselModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PressureVessel
+        fields = "__all__"
+
+
+class EquipmentPolymorphicSerializer(serializers.ModelSerializer):
+    """Dynamically serialize the correct equipment subclass."""
+
+    def to_representation(self, instance: Equipment):
+        type_map = {
+            "lathe_machine": LatheMachineModelSerializers,
+            "welding_equipment": WeldingEquipmentModelSerializer,
+            "heating_boiler": HeatingBoilerModelSerializer,
+            "lifting_crane": LiftingCraneModelSerializer,
+            "pressure_vessel": PressureVesselModelSerializer,
+        }
+        model_type = instance.type
+        serializer_class = type_map.get(model_type)
+        if serializer_class:
+            return serializer_class(instance=instance.get_real_instance()).data
+        return super().to_representation(instance)
+
+    class Meta:
+        model = Equipment
         fields = "__all__"
