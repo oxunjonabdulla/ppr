@@ -97,6 +97,19 @@ class Equipment(models.Model):
         else:
             return self.get_type_display()
 
+    def get_real_instance(self):
+        if self.type == "lathe_machine":
+            return self.lathemachine
+        elif self.type == "welding_equipment":
+            return self.weldingequipment
+        elif self.type == "heating_boiler":
+            return self.heatingboiler
+        elif self.type == "lifting_crane":
+            return self.liftingcrane
+        elif self.type == "pressure_vessel":
+            return self.pressurevessel
+        return self
+
 
 # Tokarlik dastgohlari
 # ------------------------------------------------------------------------------------------------
