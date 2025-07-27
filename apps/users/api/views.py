@@ -1,10 +1,7 @@
-from sys import exception
-
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
 from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -53,21 +50,24 @@ class UserListAPIView(ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
-    def get(self, request):
-        queryset = self.get_queryset()
-        return Response(
-            {"results": self.serializer_class(queryset, many=True).data}
-        )
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema(tags=["Users"])
 class LoginLogListAPIView(ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+    serializer_class = LoginLogSerializer
 
-    def get(self, request):
-        logs = request.user.login_logs.all().order_by("-time")
-        return Response({"results": LoginLogSerializer(logs, many=True).data})
+    def get_queryset(self):
+        return self.request.user.login_logs.all().order_by("-time")
 
 
 @extend_schema(
