@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.equipment.api.serializers import EquipmentPolymorphicSerializer
+from apps.equipment.models import Equipment
 from apps.maintenance.models import (
     EquipmentFault,
     MaintenanceSchedule,
@@ -9,6 +10,9 @@ from apps.maintenance.models import (
 
 
 class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
+    equipment_id = serializers.PrimaryKeyRelatedField(
+        queryset=Equipment.objects.all(), source="equipment", write_only=True
+    )
     equipment = EquipmentPolymorphicSerializer(read_only=True)
 
     class Meta:
