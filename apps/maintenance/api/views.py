@@ -16,6 +16,8 @@ from apps.utils.paginator import (  # Assuming you have this
     StandardResultsSetPagination,
 )
 
+from ...equipment.api.serializers import EquipmentPolymorphicSerializer
+from ...equipment.models import Equipment
 from .serializers import (
     EquipmentFaultModelSerializer,
     MaintenanceScheduleModelSerializer,
@@ -139,3 +141,11 @@ class EquipmentFaultListCreateAPIView(ListCreateAPIView):
             data={"status": status.HTTP_201_CREATED, "data": serializer.data},
             headers=headers,
         )
+
+
+@extend_schema(tags=["Ta'mirlash jadvali"])
+class EquipmentListAPIView(ListAPIView):
+    queryset = Equipment.objects.all()
+    serializer_class = EquipmentPolymorphicSerializer
+    permission_classes = [permissions.IsAuthenticated, IsEquipmentMaster]
+    pagination_class = StandardResultsSetPagination
