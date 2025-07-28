@@ -24,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer[UserType]):
             "image",
             "company",
             "phone_number",
+            "jshshir",
             "email",
         ]
 
