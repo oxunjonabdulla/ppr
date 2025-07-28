@@ -1,7 +1,12 @@
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, status
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework import filters, permissions, status
+from rest_framework.generics import (
+    CreateAPIView,
+    DestroyAPIView,
+    ListAPIView,
+    UpdateAPIView,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -49,6 +54,8 @@ class UserListAPIView(ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["username", "last_name", "phone_number"]
 
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -58,6 +65,20 @@ class UserListAPIView(ListAPIView):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+@extend_schema(tags=["Users"])
+class UserUpdateAPIView(UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+@extend_schema(tags=["Users"])
+class UserDeleteAPIView(DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 @extend_schema(tags=["Users"])
