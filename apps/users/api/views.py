@@ -55,7 +55,7 @@ class UserListAPIView(ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["username", "last_name", "phone_number"]
+    search_fields = ["username", "name", "phone_number"]
 
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
