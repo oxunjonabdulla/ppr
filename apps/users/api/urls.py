@@ -6,7 +6,9 @@ from apps.users.api.views import (
     LoginLogListAPIView,
     LogoutApiView,
     UserCreateAPIView,
+    UserDeleteAPIView,
     UserListAPIView,
+    UserUpdateAPIView,
 )
 
 app_name = "users"
@@ -18,6 +20,16 @@ urlpatterns = [
     ),
     path("user/me/", CurrentUserAPIView.as_view(), name="current-user"),
     path("users/", UserListAPIView.as_view(), name="user-list"),
+    path(
+        "user-update/<int:pk>/",
+        UserUpdateAPIView.as_view(),
+        name="user-update",
+    ),
+    path(
+        "user-delete/<int:pk>/",
+        UserDeleteAPIView.as_view(),
+        name="user-delete",
+    ),
     path(
         "user/login-logs/",
         LoginLogListAPIView.as_view(),
