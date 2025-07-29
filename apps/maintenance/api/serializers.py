@@ -8,6 +8,7 @@ from apps.maintenance.models import (
     MaintenanceWarning,
 )
 from apps.users.api.serializers import UserSerializer
+from apps.users.models import User
 
 
 class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
@@ -20,8 +21,20 @@ class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
         class Meta(UserSerializer.Meta):
             fields = ["id", "name", "username"]
 
-    assigned_to = MinimalUserSerializer()
-    completed_by = MinimalUserSerializer()
+        # --- For output (GET) ---
+
+    assigned_to = MinimalUserSerializer(read_only=True)
+    completed_by = MinimalUserSerializer(read_only=True)
+    assigned_to_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source="assigned_to", write_only=True
+    )
+    completed_by_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="completed_by",
+        write_only=True,
+        allow_null=True,
+        required=False,
+    )
 
     class Meta:
         model = MaintenanceSchedule
