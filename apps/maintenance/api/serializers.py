@@ -20,18 +20,14 @@ class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
         class Meta(UserSerializer.Meta):
             fields = ["id", "name", "username"]
 
-    assigned_to = MinimalUserSerializer(read_only=True)
-    completed_by = MinimalUserSerializer(read_only=True)
+    assigned_to = MinimalUserSerializer()
+    completed_by = MinimalUserSerializer()
 
     class Meta:
         model = MaintenanceSchedule
         # exclude = ["equipment__type"]
         fields = "__all__"
-        read_only_fields = [
-            "next_maintenance_date",  # calculated automatically in save()
-            "created_at",
-            "updated_at",
-        ]
+        read_only_fields = ["created_at", "updated_at"]
 
 
 class MaintenanceWarningModelSerializer(serializers.ModelSerializer):
