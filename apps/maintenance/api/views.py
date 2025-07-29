@@ -32,7 +32,7 @@ class MaintenanceScheduleListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = MaintenanceScheduleModelSerializer
     permission_classes = [permissions.IsAuthenticated, IsEquipmentMaster]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["maintenance_type", "description"]
+    search_fields = ["maintenance_type", "scheduled_date", "assigned_to__name"]
     pagination_class = StandardResultsSetPagination
 
     @transaction.atomic
