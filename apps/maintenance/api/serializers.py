@@ -7,6 +7,7 @@ from apps.maintenance.models import (
     MaintenanceSchedule,
     MaintenanceWarning,
 )
+from apps.users.api.serializers import UserSerializer
 
 
 class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
@@ -14,6 +15,13 @@ class MaintenanceScheduleModelSerializer(serializers.ModelSerializer):
         queryset=Equipment.objects.all(), source="equipment", write_only=True
     )
     equipment = EquipmentPolymorphicSerializer(read_only=True)
+
+    class MinimalUserSerializer(UserSerializer):
+        class Meta(UserSerializer.Meta):
+            fields = ["id", "name", "username"]
+
+    assigned_to = MinimalUserSerializer(read_only=True)
+    completed_by = MinimalUserSerializer(read_only=True)
 
     class Meta:
         model = MaintenanceSchedule
