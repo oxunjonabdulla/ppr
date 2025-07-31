@@ -27,10 +27,21 @@ class LatheMachineModelSerializers(serializers.ModelSerializer):
         source="responsible_person",
         write_only=True,
     )
+    qr_code = serializers.ImageField(read_only=True)
+    qr_code_url = serializers.SerializerMethodField()
 
     class Meta:
         model = LatheMachine
         fields = "__all__"
+
+    def get_qr_code_url(self, obj):
+        """Get full URL for QR code image"""
+        if obj.qr_code:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.qr_code.url)
+            return obj.qr_code.url
+        return None
 
 
 class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
@@ -48,10 +59,21 @@ class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
         source="responsible_person",
         write_only=True,
     )
+    qr_code = serializers.ImageField(read_only=True)
+    qr_code_url = serializers.SerializerMethodField()
 
     class Meta:
         model = WeldingEquipment
         fields = "__all__"
+
+    def get_qr_code_url(self, obj):
+        """Get full URL for QR code image"""
+        if obj.qr_code:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.qr_code.url)
+            return obj.qr_code.url
+        return None
 
 
 class HeatingBoilerModelSerializer(serializers.ModelSerializer):
@@ -69,10 +91,21 @@ class HeatingBoilerModelSerializer(serializers.ModelSerializer):
         source="responsible_person",
         write_only=True,
     )
+    qr_code = serializers.ImageField(read_only=True)
+    qr_code_url = serializers.SerializerMethodField()
 
     class Meta:
         model = HeatingBoiler
         fields = "__all__"
+
+    def get_qr_code_url(self, obj):
+        """Get full URL for QR code image"""
+        if obj.qr_code:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.qr_code.url)
+            return obj.qr_code.url
+        return None
 
 
 class LiftingCraneModelSerializer(serializers.ModelSerializer):
@@ -90,10 +123,21 @@ class LiftingCraneModelSerializer(serializers.ModelSerializer):
         source="responsible_person",
         write_only=True,
     )
+    qr_code = serializers.ImageField(read_only=True)
+    qr_code_url = serializers.SerializerMethodField()
 
     class Meta:
         model = LiftingCrane
         fields = "__all__"
+
+    def get_qr_code_url(self, obj):
+        """Get full URL for QR code image"""
+        if obj.qr_code:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.qr_code.url)
+            return obj.qr_code.url
+        return None
 
 
 class PressureVesselModelSerializer(serializers.ModelSerializer):
@@ -111,10 +155,21 @@ class PressureVesselModelSerializer(serializers.ModelSerializer):
         source="responsible_person",
         write_only=True,
     )
+    qr_code = serializers.ImageField(read_only=True)
+    qr_code_url = serializers.SerializerMethodField()
 
     class Meta:
         model = PressureVessel
         fields = "__all__"
+
+    def get_qr_code_url(self, obj):
+        """Get full URL for QR code image"""
+        if obj.qr_code:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.qr_code.url)
+            return obj.qr_code.url
+        return None
 
 
 class EquipmentPolymorphicSerializer(serializers.ModelSerializer):
