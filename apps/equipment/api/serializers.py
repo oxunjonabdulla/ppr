@@ -8,10 +8,19 @@ from apps.equipment.models import (
     PressureVessel,
     WeldingEquipment,
 )
+from apps.users.api.serializers import UserSerializer
 
 
 class LatheMachineModelSerializers(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
+
+    class MinimalUserSerializer(UserSerializer):
+        class Meta(UserSerializer.Meta):
+            fields = ["id", "name", "username"]
+
+        # --- For output (GET) ---
+
+    responsible_person = MinimalUserSerializer()
 
     class Meta:
         model = LatheMachine
@@ -21,6 +30,14 @@ class LatheMachineModelSerializers(serializers.ModelSerializer):
 class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
 
+    class MinimalUserSerializer(UserSerializer):
+        class Meta(UserSerializer.Meta):
+            fields = ["id", "name", "username"]
+
+        # --- For output (GET) ---
+
+    responsible_person = MinimalUserSerializer()
+
     class Meta:
         model = WeldingEquipment
         fields = "__all__"
@@ -28,6 +45,14 @@ class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
 
 class HeatingBoilerModelSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
+
+    class MinimalUserSerializer(UserSerializer):
+        class Meta(UserSerializer.Meta):
+            fields = ["id", "name", "username"]
+
+        # --- For output (GET) ---
+
+    responsible_person = MinimalUserSerializer()
 
     class Meta:
         model = HeatingBoiler
@@ -37,6 +62,14 @@ class HeatingBoilerModelSerializer(serializers.ModelSerializer):
 class LiftingCraneModelSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
 
+    class MinimalUserSerializer(UserSerializer):
+        class Meta(UserSerializer.Meta):
+            fields = ["id", "name", "username"]
+
+        # --- For output (GET) ---
+
+    responsible_person = MinimalUserSerializer()
+
     class Meta:
         model = LiftingCrane
         fields = "__all__"
@@ -44,6 +77,14 @@ class LiftingCraneModelSerializer(serializers.ModelSerializer):
 
 class PressureVesselModelSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
+
+    class MinimalUserSerializer(UserSerializer):
+        class Meta(UserSerializer.Meta):
+            fields = ["id", "name", "username"]
+
+        # --- For output (GET) ---
+
+    responsible_person = MinimalUserSerializer()
 
     class Meta:
         model = PressureVessel
