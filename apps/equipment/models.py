@@ -1,3 +1,8 @@
+import uuid
+from io import BytesIO
+
+import qrcode
+from django.core.files import File
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -42,9 +47,44 @@ class AbstractBaseEquipment(models.Model):
         blank=True,
         verbose_name=_("Javobgar shaxs"),
     )
+    qr_code = models.ImageField(
+        _("QR Kod"),
+        upload_to="qr_codes/",
+        null=True,
+        blank=True,
+        help_text=_("QR kod avtomatik yaratiladi"),
+    )
 
     class Meta:
         abstract = True
+
+    def generate_qr_code(self, url):
+        """Generate QR code for the equipment"""
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(url)
+        qr.make(fit=True)
+
+        # Create QR code image
+        qr_image = qr.make_image(fill_color="black", back_color="white")
+
+        # Save to BytesIO
+        buffer = BytesIO()
+        qr_image.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        # Generate filename
+        filename = (
+            f"qr_{self.__class__.__name__.lower()}_{uuid.uuid4().hex[:8]}.png"
+        )
+
+        # Save to model field
+        self.qr_code.save(filename, File(buffer), save=False)
+        buffer.close()
 
 
 # Equipment Base Model
@@ -146,6 +186,15 @@ class LatheMachine(AbstractBaseEquipment, Equipment):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
 
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new or not self.qr_code:
+            detail_url = f"https://api.ppr.vchdqarshi.uz/api/lathe_machine-detail/{self.pk}/"
+            self.generate_qr_code(detail_url)
+            # Save again to update QR code field
+            super().save(update_fields=["qr_code"])
+
 
 # Payvandlash uskunalari
 # ------------------------------------------------------------------------------------------
@@ -181,6 +230,15 @@ class WeldingEquipment(AbstractBaseEquipment, Equipment):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
 
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new or not self.qr_code:
+            detail_url = f"https://api.ppr.vchdqarshi.uz/api/welding_equipment-detail/{self.pk}/"
+            self.generate_qr_code(detail_url)
+            # Save again to update QR code field
+            super().save(update_fields=["qr_code"])
+
 
 # Isitish qozoni
 # ------------------------------------------------------------------------------------------
@@ -209,6 +267,15 @@ class HeatingBoiler(AbstractBaseEquipment, Equipment):
     def save(self, *args, **kwargs):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
+
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new or not self.qr_code:
+            detail_url = f"https://api.ppr.vchdqarshi.uz/api/heating_boiler-detail/{self.pk}/"
+            self.generate_qr_code(detail_url)
+            # Save again to update QR code field
+            super().save(update_fields=["qr_code"])
 
 
 # Yuk ko'taruvchi kranlar
@@ -245,6 +312,15 @@ class LiftingCrane(AbstractBaseEquipment, Equipment):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
 
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new or not self.qr_code:
+            detail_url = f"https://api.ppr.vchdqarshi.uz/api/lifting_crane-detail/{self.pk}/"
+            self.generate_qr_code(detail_url)
+            # Save again to update QR code field
+            super().save(update_fields=["qr_code"])
+
 
 # Bosim ostida sig'imlar
 # -----------------------------------------------------------------------------------------
@@ -276,3 +352,12 @@ class PressureVessel(AbstractBaseEquipment, Equipment):
     def save(self, *args, **kwargs):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
+
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new or not self.qr_code:
+            detail_url = f"https://api.ppr.vchdqarshi.uz/api/pressure_vessel-detail/{self.pk}/"
+            self.generate_qr_code(detail_url)
+            # Save again to update QR code field
+            super().save(update_fields=["qr_code"])

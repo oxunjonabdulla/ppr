@@ -1,3 +1,7 @@
+import uuid
+from io import BytesIO
+
+from django.core.files import File
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
@@ -21,6 +25,7 @@ from apps.equipment.models import (
 )
 from apps.users.api.permissions import IsEquipmentMaster
 from apps.utils.paginator import StandardResultsSetPagination
+from apps.utils.qr_code import generate_equipment_qr_code
 
 
 # Tokarlik dastgohlari
@@ -36,7 +41,16 @@ class LatheMachineListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        """Save the instance and generate QR code"""
+        instance = serializer.save(author=self.request.user)
+
+        # QR code is generated automatically in the model's save method
+        # But we can also trigger it manually if needed
+        if not instance.qr_code:
+            buffer, url = generate_equipment_qr_code(instance)
+            filename = f"qr_lathe_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
+            instance.qr_code.save(filename, File(buffer), save=True)
+            buffer.close()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -44,10 +58,20 @@ class LatheMachineListCreateAPIView(generics.ListCreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {"status": status.HTTP_201_CREATED, "data": serializer.data},
+            {
+                "status": status.HTTP_201_CREATED,
+                "message": "Tokarlik dastgohi muvaffaqiyatli yaratildi",
+                "data": serializer.data,
+            },
             status=status.HTTP_201_CREATED,
             headers=headers,
         )
+
+    def get_serializer_context(self):
+        """Add request to serializer context for URL building"""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 # ------------------------------------------------------------------------------------------
@@ -89,7 +113,16 @@ class WeldingEquipmentListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        """Save the instance and generate QR code"""
+        instance = serializer.save(author=self.request.user)
+
+        # QR code is generated automatically in the model's save method
+        # But we can also trigger it manually if needed
+        if not instance.qr_code:
+            buffer, url = generate_equipment_qr_code(instance)
+            filename = f"qr_welding_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
+            instance.qr_code.save(filename, File(buffer), save=True)
+            buffer.close()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -97,10 +130,20 @@ class WeldingEquipmentListCreateAPIView(generics.ListCreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {"status": status.HTTP_201_CREATED, "data": serializer.data},
+            {
+                "status": status.HTTP_201_CREATED,
+                "message": "Payvandlash qurilmasi muvaffaqiyatli yaratildi",
+                "data": serializer.data,
+            },
             status=status.HTTP_201_CREATED,
             headers=headers,
         )
+
+    def get_serializer_context(self):
+        """Add request to serializer context for URL building"""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 # ------------------------------------------------------------------------------------------
@@ -142,7 +185,14 @@ class HeatingBoilerListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        """Save the instance and generate QR code"""
+        instance = serializer.save(author=self.request.user)
+
+        if not instance.qr_code:
+            buffer, url = generate_equipment_qr_code(instance)
+            filename = f"qr_heating_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
+            instance.qr_code.save(filename, File(buffer), save=True)
+            buffer.close()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -150,10 +200,20 @@ class HeatingBoilerListCreateAPIView(generics.ListCreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {"status": status.HTTP_201_CREATED, "data": serializer.data},
+            {
+                "status": status.HTTP_201_CREATED,
+                "message": "Isitish qozonlari muvaffaqiyatli yaratildi",
+                "data": serializer.data,
+            },
             status=status.HTTP_201_CREATED,
             headers=headers,
         )
+
+    def get_serializer_context(self):
+        """Add request to serializer context for URL building"""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 # ------------------------------------------------------------------------------------------
@@ -193,7 +253,14 @@ class LiftingCraneListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        """Save the instance and generate QR code"""
+        instance = serializer.save(author=self.request.user)
+
+        if not instance.qr_code:
+            buffer, url = generate_equipment_qr_code(instance)
+            filename = f"qr_lifting_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
+            instance.qr_code.save(filename, File(buffer), save=True)
+            buffer.close()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -201,10 +268,20 @@ class LiftingCraneListCreateAPIView(generics.ListCreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {"status": status.HTTP_201_CREATED, "data": serializer.data},
+            {
+                "status": status.HTTP_201_CREATED,
+                "message": "Yuk ko'tarish kranlari muvaffaqiyatli yaratildi",
+                "data": serializer.data,
+            },
             status=status.HTTP_201_CREATED,
             headers=headers,
         )
+
+    def get_serializer_context(self):
+        """Add request to serializer context for URL building"""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 # ------------------------------------------------------------------------------------------
@@ -246,7 +323,14 @@ class PressureVesselListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        """Save the instance and generate QR code"""
+        instance = serializer.save(author=self.request.user)
+
+        if not instance.qr_code:
+            buffer, url = generate_equipment_qr_code(instance)
+            filename = f"qr_pressure_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
+            instance.qr_code.save(filename, File(buffer), save=True)
+            buffer.close()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -254,10 +338,20 @@ class PressureVesselListCreateAPIView(generics.ListCreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {"status": status.HTTP_201_CREATED, "data": serializer.data},
+            {
+                "status": status.HTTP_201_CREATED,
+                "message": "Bosim ostida sig'imi muvaffaqiyatli yaratildi",
+                "data": serializer.data,
+            },
             status=status.HTTP_201_CREATED,
             headers=headers,
         )
+
+    def get_serializer_context(self):
+        """Add request to serializer context for URL building"""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 # ------------------------------------------------------------------------------------------
