@@ -9,6 +9,7 @@ from apps.equipment.models import (
     WeldingEquipment,
 )
 from apps.users.api.serializers import UserSerializer
+from apps.users.models import User
 
 
 class LatheMachineModelSerializers(serializers.ModelSerializer):
@@ -21,6 +22,11 @@ class LatheMachineModelSerializers(serializers.ModelSerializer):
         # --- For output (GET) ---
 
     responsible_person = MinimalUserSerializer()
+    responsible_person_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="responsible_person",
+        write_only=True,
+    )
 
     class Meta:
         model = LatheMachine
@@ -37,6 +43,11 @@ class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
         # --- For output (GET) ---
 
     responsible_person = MinimalUserSerializer()
+    responsible_person_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="responsible_person",
+        write_only=True,
+    )
 
     class Meta:
         model = WeldingEquipment
@@ -53,6 +64,11 @@ class HeatingBoilerModelSerializer(serializers.ModelSerializer):
         # --- For output (GET) ---
 
     responsible_person = MinimalUserSerializer()
+    responsible_person_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="responsible_person",
+        write_only=True,
+    )
 
     class Meta:
         model = HeatingBoiler
@@ -69,6 +85,11 @@ class LiftingCraneModelSerializer(serializers.ModelSerializer):
         # --- For output (GET) ---
 
     responsible_person = MinimalUserSerializer()
+    responsible_person_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="responsible_person",
+        write_only=True,
+    )
 
     class Meta:
         model = LiftingCrane
@@ -85,6 +106,11 @@ class PressureVesselModelSerializer(serializers.ModelSerializer):
         # --- For output (GET) ---
 
     responsible_person = MinimalUserSerializer()
+    responsible_person_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="responsible_person",
+        write_only=True,
+    )
 
     class Meta:
         model = PressureVessel
