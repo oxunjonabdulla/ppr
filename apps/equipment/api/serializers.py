@@ -21,7 +21,7 @@ class LatheMachineModelSerializers(serializers.ModelSerializer):
 
         # --- For output (GET) ---
 
-    responsible_person = MinimalUserSerializer()
+    responsible_person = MinimalUserSerializer(read_only=True)
     responsible_person_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="responsible_person",
@@ -42,7 +42,7 @@ class WeldingEquipmentModelSerializer(serializers.ModelSerializer):
 
         # --- For output (GET) ---
 
-    responsible_person = MinimalUserSerializer()
+    responsible_person = MinimalUserSerializer(read_only=True)
     responsible_person_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="responsible_person",
@@ -63,7 +63,7 @@ class HeatingBoilerModelSerializer(serializers.ModelSerializer):
 
         # --- For output (GET) ---
 
-    responsible_person = MinimalUserSerializer()
+    responsible_person = MinimalUserSerializer(read_only=True)
     responsible_person_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="responsible_person",
@@ -84,7 +84,7 @@ class LiftingCraneModelSerializer(serializers.ModelSerializer):
 
         # --- For output (GET) ---
 
-    responsible_person = MinimalUserSerializer()
+    responsible_person = MinimalUserSerializer(read_only=True)
     responsible_person_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="responsible_person",
@@ -105,7 +105,7 @@ class PressureVesselModelSerializer(serializers.ModelSerializer):
 
         # --- For output (GET) ---
 
-    responsible_person = MinimalUserSerializer()
+    responsible_person = MinimalUserSerializer(read_only=True)
     responsible_person_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="responsible_person",
