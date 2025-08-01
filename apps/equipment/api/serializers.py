@@ -29,6 +29,14 @@ class LatheMachineModelSerializers(serializers.ModelSerializer):
     )
     qr_code = serializers.ImageField(read_only=True)
     qr_code_url = serializers.SerializerMethodField()
+    latitude = serializers.DecimalField(
+        max_digits=10, decimal_places=8, required=False, allow_null=True
+    )
+    longitude = serializers.DecimalField(
+        max_digits=11, decimal_places=8, required=False, allow_null=True
+    )
+    location_address = serializers.CharField(required=False, allow_blank=True)
+    location_display = serializers.SerializerMethodField()
 
     class Meta:
         model = LatheMachine
@@ -42,6 +50,38 @@ class LatheMachineModelSerializers(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.qr_code.url)
             return obj.qr_code.url
         return None
+
+    def get_location_display(self, obj):
+        """Get formatted location display"""
+        return obj.get_location_display()
+
+    def validate(self, data):
+        """Validate location data"""
+        latitude = data.get("latitude")
+        longitude = data.get("longitude")
+
+        # If one coordinate is provided, both should be provided
+        if (latitude is not None and longitude is None) or (
+            latitude is None and longitude is not None
+        ):
+            raise serializers.ValidationError(
+                "Agar joylashuv belgilasangiz, kenglik va uzunlik ikkalasini ham kiriting."
+            )
+
+        # Validate coordinate ranges
+        if latitude is not None:
+            if not (-90 <= float(latitude) <= 90):
+                raise serializers.ValidationError(
+                    "Kenglik -90 dan 90 gacha bo'lishi kerak."
+                )
+
+        if longitude is not None:
+            if not (-180 <= float(longitude) <= 180):
+                raise serializers.ValidationError(
+                    "Uzunlik -180 dan 180 gacha bo'lishi kerak."
+                )
+
+        return data
 
 
 class WeldingEquipmentModelSerializer(serializers.ModelSerializer):

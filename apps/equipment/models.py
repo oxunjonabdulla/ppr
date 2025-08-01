@@ -54,6 +54,22 @@ class AbstractBaseEquipment(models.Model):
         blank=True,
         help_text=_("QR kod avtomatik yaratiladi"),
     )
+    latitude = models.DecimalField(
+        _("Kenglik"),
+        max_digits=10,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        help_text=_("Joylashuv kengligi"),
+    )
+    longitude = models.DecimalField(
+        _("Uzunlik"),
+        max_digits=11,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        help_text=_("Joylashuv uzunligi"),
+    )
 
     class Meta:
         abstract = True
@@ -192,6 +208,12 @@ class LatheMachine(AbstractBaseEquipment, Equipment):
             self.generate_qr_code(detail_url)
             # Save again to update QR code field
             super().save(update_fields=["qr_code"])
+
+    def get_location_display(self):
+        """Get formatted location string"""
+        if self.latitude and self.longitude:
+            return f"{self.latitude}, {self.longitude}"
+        return "Joylashuv belgilanmagan"
 
 
 # Payvandlash uskunalari
