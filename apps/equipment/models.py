@@ -184,8 +184,6 @@ class LatheMachine(AbstractBaseEquipment, Equipment):
 
     def save(self, *args, **kwargs):
         self.type = self.AUTO_TYPE
-        super().save(*args, **kwargs)
-
         is_new = self.pk is None
         super().save(*args, **kwargs)
 
@@ -228,8 +226,6 @@ class WeldingEquipment(AbstractBaseEquipment, Equipment):
 
     def save(self, *args, **kwargs):
         self.type = self.AUTO_TYPE
-        super().save(*args, **kwargs)
-
         is_new = self.pk is None
         super().save(*args, **kwargs)
 
@@ -266,8 +262,6 @@ class HeatingBoiler(AbstractBaseEquipment, Equipment):
 
     def save(self, *args, **kwargs):
         self.type = self.AUTO_TYPE
-        super().save(*args, **kwargs)
-
         is_new = self.pk is None
         super().save(*args, **kwargs)
 
@@ -311,9 +305,7 @@ class LiftingCrane(AbstractBaseEquipment, Equipment):
     def save(self, *args, **kwargs):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
-
         is_new = self.pk is None
-        super().save(*args, **kwargs)
 
         if is_new or not self.qr_code:
             detail_url = f"https://api.ppr.vchdqarshi.uz/api/lifting_crane-detail/{self.pk}/"
@@ -352,9 +344,7 @@ class PressureVessel(AbstractBaseEquipment, Equipment):
     def save(self, *args, **kwargs):
         self.type = self.AUTO_TYPE
         super().save(*args, **kwargs)
-
         is_new = self.pk is None
-        super().save(*args, **kwargs)
 
         if is_new or not self.qr_code:
             detail_url = f"https://api.ppr.vchdqarshi.uz/api/pressure_vessel-detail/{self.pk}/"

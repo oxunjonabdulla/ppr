@@ -1,5 +1,4 @@
 import uuid
-from io import BytesIO
 
 from django.core.files import File
 from django.db import transaction
@@ -41,27 +40,21 @@ class LatheMachineListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        """Save the instance and generate QR code"""
-        instance = serializer.save(author=self.request.user)
-
-        # QR code is generated automatically in the model's save method
-        # But we can also trigger it manually if needed
-        if not instance.qr_code:
-            buffer, url = generate_equipment_qr_code(instance)
-            filename = f"qr_lathe_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
-            instance.qr_code.save(filename, File(buffer), save=True)
-            buffer.close()
+        self.instance = serializer.save(
+            author=self.request.user
+        )  # Save instance to access later
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+        response_serializer = self.get_serializer(self.instance)
+        headers = self.get_success_headers(response_serializer.data)
         return Response(
             {
                 "status": status.HTTP_201_CREATED,
                 "message": "Tokarlik dastgohi muvaffaqiyatli yaratildi",
-                "data": serializer.data,
+                "data": response_serializer.data,
             },
             status=status.HTTP_201_CREATED,
             headers=headers,
@@ -113,27 +106,21 @@ class WeldingEquipmentListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        """Save the instance and generate QR code"""
-        instance = serializer.save(author=self.request.user)
-
-        # QR code is generated automatically in the model's save method
-        # But we can also trigger it manually if needed
-        if not instance.qr_code:
-            buffer, url = generate_equipment_qr_code(instance)
-            filename = f"qr_welding_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
-            instance.qr_code.save(filename, File(buffer), save=True)
-            buffer.close()
+        self.instance = serializer.save(
+            author=self.request.user
+        )  # Save instance to access later
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+        response_serializer = self.get_serializer(self.instance)
+        headers = self.get_success_headers(response_serializer.data)
         return Response(
             {
                 "status": status.HTTP_201_CREATED,
                 "message": "Payvandlash qurilmasi muvaffaqiyatli yaratildi",
-                "data": serializer.data,
+                "data": response_serializer.data,
             },
             status=status.HTTP_201_CREATED,
             headers=headers,
@@ -185,25 +172,21 @@ class HeatingBoilerListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        """Save the instance and generate QR code"""
-        instance = serializer.save(author=self.request.user)
-
-        if not instance.qr_code:
-            buffer, url = generate_equipment_qr_code(instance)
-            filename = f"qr_heating_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
-            instance.qr_code.save(filename, File(buffer), save=True)
-            buffer.close()
+        self.instance = serializer.save(
+            author=self.request.user
+        )  # Save instance to access later
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+        response_serializer = self.get_serializer(self.instance)
+        headers = self.get_success_headers(response_serializer)
         return Response(
             {
                 "status": status.HTTP_201_CREATED,
                 "message": "Isitish qozonlari muvaffaqiyatli yaratildi",
-                "data": serializer.data,
+                "data": response_serializer.data,
             },
             status=status.HTTP_201_CREATED,
             headers=headers,
@@ -253,25 +236,19 @@ class LiftingCraneListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        """Save the instance and generate QR code"""
-        instance = serializer.save(author=self.request.user)
-
-        if not instance.qr_code:
-            buffer, url = generate_equipment_qr_code(instance)
-            filename = f"qr_lifting_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
-            instance.qr_code.save(filename, File(buffer), save=True)
-            buffer.close()
+        self.instance = serializer.save(author=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+        response_serializer = self.get_serializer(self.instance)
+        headers = self.get_success_headers(response_serializer)
         return Response(
             {
                 "status": status.HTTP_201_CREATED,
                 "message": "Yuk ko'tarish kranlari muvaffaqiyatli yaratildi",
-                "data": serializer.data,
+                "data": response_serializer.data,
             },
             status=status.HTTP_201_CREATED,
             headers=headers,
@@ -323,25 +300,19 @@ class PressureVesselListCreateAPIView(generics.ListCreateAPIView):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        """Save the instance and generate QR code"""
-        instance = serializer.save(author=self.request.user)
-
-        if not instance.qr_code:
-            buffer, url = generate_equipment_qr_code(instance)
-            filename = f"qr_pressure_{instance.pk}_{uuid.uuid4().hex[:8]}.png"
-            instance.qr_code.save(filename, File(buffer), save=True)
-            buffer.close()
+        self.instance = serializer.save(author=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+        response_serializer = self.get_serializer(self.instance)
+        headers = self.get_success_headers(response_serializer)
         return Response(
             {
                 "status": status.HTTP_201_CREATED,
                 "message": "Bosim ostida sig'imi muvaffaqiyatli yaratildi",
-                "data": serializer.data,
+                "data": response_serializer.data,
             },
             status=status.HTTP_201_CREATED,
             headers=headers,
