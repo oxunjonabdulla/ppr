@@ -70,6 +70,12 @@ class AbstractBaseEquipment(models.Model):
         blank=True,
         help_text=_("Joylashuv uzunligi"),
     )
+    location_address = models.CharField(
+        _("Manzil"),
+        max_length=500,
+        blank=True,
+        help_text=_("Joylashuv manzili"),
+    )
 
     class Meta:
         abstract = True
